@@ -59,26 +59,25 @@ cd vm-monitor && ./scripts/setup.sh
 
 ## 🔥 Why VM Monitor?
 
-### Comparison with Alternatives
+### Built for Control, Not Just Visibility
 
-| Feature | VM Monitor | Prometheus + Grafana | Datadog | Netdata |
-|---------|------------|---------------------|---------|---------|
-| **Setup Time** | 2 minutes | Hours | Minutes | Minutes |
-| **Self-Hosted** | ✅ | ✅ | ❌ | ✅ |
-| **Single Binary/File** | ✅ (1 Python file) | ❌ (10+ components) | ❌ | ❌ |
-| **Container Discovery** | ✅ Docker, Podman, K8s | ⚠️ Needs exporters | ✅ | ✅ |
-| **Remote Commands** | ✅ Built-in | ❌ | ❌ | ❌ |
-| **SMS Alerts** | ✅ Twilio/Textbelt | ⚠️ Alertmanager | ✅ | ❌ |
-| **Auto-Updates** | ✅ Agents update themselves | ❌ | ✅ | ✅ |
-| **Offline Install** | ✅ Wheels included | ❌ | ❌ | ❌ |
-| **Cost** | **Free** | Free | $15/host/mo | Free |
+Most monitoring tools show you what's happening. VM Monitor lets you **do something about it**:
 
-### Use Cases
+- 📱 **Reboot a frozen VM from your phone** - not just see that it's down
+- 🔧 **Restart services remotely** - don't SSH into 10 servers
+- 📲 **Get SMS when it matters** - built-in Twilio, no config hell
+- ⚡ **2-minute setup** - one script, done
+- 🔒 **Self-hosted only** - your data never leaves your network
+- 📴 **Works offline** - pre-built wheels, no internet required
 
-- **Homelab** - Monitor your Proxmox VMs, Docker containers, and k3s clusters
-- **Small Team** - Track 5-50 production servers without enterprise complexity
-- **Multi-Cloud** - Single dashboard for AWS, GCP, Azure, Oracle Cloud, on-prem
-- **Air-Gapped** - Offline installation with bundled dependencies
+### Perfect For
+
+| Use Case | Why VM Monitor |
+|----------|----------------|
+| **Homelab** | Simple dashboard for your Proxmox VMs and containers |
+| **Small Team** | 5-50 servers without enterprise complexity |
+| **Multi-Cloud** | Single view for AWS + GCP + Oracle + on-prem |
+| **Air-Gapped** | Offline installation with bundled dependencies |
 
 ---
 
