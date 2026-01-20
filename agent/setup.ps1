@@ -24,9 +24,9 @@ $FeatureAutoUpdate = -not $NoAutoUpdate
 
 function Write-Banner {
     Write-Host ""
-    Write-Host "╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "║           VM Monitoring Agent - Setup Wizard              ║" -ForegroundColor Cyan
-    Write-Host "╚═══════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host "==========================================================" -ForegroundColor Cyan
+    Write-Host "           VM Monitoring Agent - Setup Wizard             " -ForegroundColor Cyan
+    Write-Host "==========================================================" -ForegroundColor Cyan
     Write-Host ""
 }
 
@@ -64,11 +64,11 @@ function Show-FeatureStatus {
     
     if ($Enabled) {
         Write-Host "  $Name`: " -NoNewline
-        Write-Host "✓ Enabled" -ForegroundColor Green
+        Write-Host "[Enabled]" -ForegroundColor Green
     }
     else {
         Write-Host "  $Name`: " -NoNewline
-        Write-Host "✗ Disabled" -ForegroundColor Red
+        Write-Host "[Disabled]" -ForegroundColor Red
     }
 }
 
@@ -76,14 +76,14 @@ function Run-Interactive {
     Write-Banner
     
     Write-Host "Step 1: Dashboard Connection" -ForegroundColor Green
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
+    Write-Host "----------------------------" -ForegroundColor DarkGray
     $script:Server = Read-HostRequired -Prompt "Dashboard URL (e.g., http://monitor.example.com:5000)"
     $script:Key = Read-HostRequired -Prompt "API Key"
     $script:Interval = [int](Read-HostRequired -Prompt "Collection interval (seconds)" -Default "30")
     
     Write-Host ""
     Write-Host "Step 2: Feature Configuration" -ForegroundColor Green
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
+    Write-Host "----------------------------" -ForegroundColor DarkGray
     Write-Host "Enable or disable optional features:" -ForegroundColor Yellow
     Write-Host ""
     
@@ -94,7 +94,7 @@ function Run-Interactive {
     
     Write-Host ""
     Write-Host "Step 3: Confirm Settings" -ForegroundColor Green
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
+    Write-Host "----------------------------" -ForegroundColor DarkGray
     Write-Host "  Server:     " -NoNewline; Write-Host $Server -ForegroundColor Cyan
     Write-Host "  API Key:    " -NoNewline; Write-Host "$($Key.Substring(0,4))****" -ForegroundColor Cyan
     Write-Host "  Interval:   " -NoNewline; Write-Host "${Interval}s" -ForegroundColor Cyan
@@ -113,7 +113,7 @@ function Run-Interactive {
 
 function Install-Agent {
     Write-Host ""
-    Write-Host "🚀 Installing VM Agent..." -ForegroundColor Green
+    Write-Host "[-] Installing VM Agent..." -ForegroundColor Green
     
     # 1. Check Python
     Write-Host "[1/5] Checking Python installation..." -ForegroundColor Blue
@@ -212,9 +212,9 @@ Get-Content vm-agent.conf | ForEach-Object {
     Start-ScheduledTask -TaskName "VMAgent"
     
     Write-Host ""
-    Write-Host "╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Green
-    Write-Host "║              ✅ Agent installed successfully!             ║" -ForegroundColor Green
-    Write-Host "╚═══════════════════════════════════════════════════════════╝" -ForegroundColor Green
+    Write-Host "==========================================================" -ForegroundColor Green
+    Write-Host "               Agent installed successfully!              " -ForegroundColor Green
+    Write-Host "==========================================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "  Config:  " -NoNewline; Write-Host "$InstallDir\vm-agent.conf" -ForegroundColor Cyan
     Write-Host "  Status:  " -NoNewline; Write-Host "Get-ScheduledTask -TaskName VMAgent" -ForegroundColor Cyan
