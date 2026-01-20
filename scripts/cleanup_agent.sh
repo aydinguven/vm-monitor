@@ -54,8 +54,12 @@ if systemctl is-enabled --quiet vm-agent 2>/dev/null; then
     sudo systemctl disable vm-agent
 fi
 
-# Kill any remaining processes
-sudo pkill -9 -f "agent.py" 2>/dev/null || true
+# Kill any remaining agent processes (be specific to avoid killing SSH/shells)
+# Only kill if /opt/vm-agent/agent.py is in the command line
+if pgrep -f "/opt/vm-agent/agent.py" > /dev/null 2>&1; then
+    sudo pkill -9 -f "/opt/vm-agent/agent.py" || true
+    sleep 1
+fi
 
 # Remove service file
 if [ -f "/etc/systemd/system/vm-agent.service" ]; then
@@ -69,6 +73,15 @@ sudo rm -rf /opt/vm-agent
 sudo rm -f /etc/vm-agent.conf
 sudo rm -rf /etc/vm-agent
 
+# Remove sudoers rule (v1.45+)
+if [ -f "/etc/sudoers.d/vm-agent" ]; then
+    echo -e "  ${CYAN}Removing sudoers rules...${NC}"
+    sudo rm -f /etc/sudoers.d/vm-agent
+fi
+
+# Remove vm-agent user (optional - keep to preserve any audit logs)
+# sudo userdel vm-agent 2>/dev/null || true
+
 # Remove temp files
 sudo rm -rf /tmp/vm-agent* 2>/dev/null || true
 
@@ -80,3 +93,6 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║                  ✅ Cleanup complete!                     ║${NC}"
 echo -e "${GREEN}╚═══════════════════════════════════════════════════════════╝${NC}"
 echo ""
+
+# Reset terminal state in case it was corrupted
+stty sane 2>/dev/null || true
