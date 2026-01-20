@@ -197,9 +197,9 @@ install_dashboard() {
     echo -e "${BLUE}[5/6] Setting up Python environment...${NC}"
     cd "$INSTALL_DIR"
     sudo python3 -m venv venv
-    sudo ./venv/bin/pip install --upgrade pip -q
-    sudo ./venv/bin/pip install -r requirements.txt -q
-    sudo ./venv/bin/pip install gunicorn -q
+    sudo ./venv/bin/pip install --upgrade pip
+    sudo ./venv/bin/pip install -r requirements.txt
+    sudo ./venv/bin/pip install gunicorn requests
     
     # Create instance directory and features.json
     sudo mkdir -p "$INSTALL_DIR/instance"
