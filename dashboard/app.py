@@ -187,7 +187,8 @@ def send_sms_alert():
             app.logger.error("SMS alert failed to send")
 
 
-scheduler = BackgroundScheduler(timezone="Europe/Istanbul")  # Turkey time
+from config import TIMEZONE
+scheduler = BackgroundScheduler(timezone=TIMEZONE)
 scheduler.add_job(
     func=cleanup_old_metrics,
     trigger="interval",

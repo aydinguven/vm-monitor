@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.42 (2026-01-20)
+- **Feature**: Configurable Timezones. Dashboard scheduler timezone can now be configured via `TIMEZONE` env variable (default: Europe/Istanbul).
+
 ## v1.41 (2026-01-20)
 - **Feature**: Added dashboard-based Agent Auto-Update. Agents can now pull updates directly from the dashboard.
 - **Feature**: Added `scripts/update_dashboard.sh` for safe dashboard updates (preserves data).

@@ -44,6 +44,9 @@ SMS_DASHBOARD_URL = get_sms_dashboard_url()
 ALERT_WARNING_THRESHOLD = int(os.getenv("ALERT_WARNING_THRESHOLD", "80"))
 ALERT_CRITICAL_THRESHOLD = int(os.getenv("ALERT_CRITICAL_THRESHOLD", "90"))
 
+# Timezone (default to Turkey)
+TIMEZONE = os.getenv("TIMEZONE", "Europe/Istanbul")
+
 
 # =============================================================================
 # Feature Flags - Enable/disable features via config file or env vars
