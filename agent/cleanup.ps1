@@ -51,8 +51,29 @@ if ($nssmService) {
 Write-Host "  Removing application files..." -ForegroundColor Cyan
 $installDir = "C:\vm-agent"
 if (Test-Path $installDir) {
-    Remove-Item $installDir -Recurse -Force
-    Write-Host "  * Removed $installDir" -ForegroundColor Green
+    # Try multiple times to handle file locking
+    $maxRetries = 5
+    $retryCount = 0
+    $removed = $false
+    
+    while (-not $removed -and $retryCount -lt $maxRetries) {
+        try {
+            Remove-Item $installDir -Recurse -Force -ErrorAction Stop
+            $removed = $true
+            Write-Host "  * Removed $installDir" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "  ! File locked, retrying in 2s... ($($retryCount+1)/$maxRetries)" -ForegroundColor Yellow
+            # Try to kill leftovers again
+            Get-Process -Name "python*" -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$installDir*" } | Stop-Process -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 2
+            $retryCount++
+        }
+    }
+    
+    if (-not $removed) {
+        Write-Host "  [WARNING] Could not remove some files (likely locked). Please restart and try again." -ForegroundColor Red
+    }
 }
 
 # 5. Clean up temp files
