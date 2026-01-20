@@ -3,12 +3,16 @@
 
 A lightweight, self-hosted VM monitoring system with a Python agent and Flask-based web dashboard.
 
+![Dashboard Overview](docs/images/dashboard_overview.png)
+
 ## Features
 
 - **Real-time Monitoring**
   - Tracks CPU (Average/Instant), RAM, Disk (all partitions), Swap, and Network I/O.
   - Historical charts with selectable time ranges (1h, 24h, 7d, 30d).
   - Top Process monitoring (CPU/RAM consumers).
+
+  ![VM Details](docs/images/vm_details.png)
 
 - **Multi-Platform Agent**
   - **Linux**: Supports RHEL, CentOS, Rocky, Oracle Linux, Ubuntu, Debian.
@@ -35,9 +39,19 @@ A lightweight, self-hosted VM monitoring system with a Python agent and Flask-ba
   - Manage system services (Systemd/Windows Services).
   - Reboot VMs or install system updates remotely.
 
+  ![Diagnostic Tools & Disk Usage](docs/images/disk_usage.png)
+
 - **Cloud Awareness**
   - Auto-detects cloud provider: AWS, GCP, Azure, Oracle Cloud.
   - Identifies hypervisors: Proxmox, VMware, Hyper-V, KVM.
+
+- **Mobile Optimized**
+  - Fully responsive design for phones and tablets.
+  - Dark and Light mode support.
+
+| Dark Mode | Light Mode |
+|-----------|------------|
+| ![Mobile Dark](docs/images/mobile_dark.png) | ![Mobile Light](docs/images/mobile_light.png) |
 
 ## Quick Start
 
@@ -56,6 +70,8 @@ chmod +x scripts/*.sh
 ```
 
 ### 2. Install Agent (Linux)
+
+![Installer Wizard](docs/images/installer_wizard.png)
 
 ```bash
 # Interactive setup
