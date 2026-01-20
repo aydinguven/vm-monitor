@@ -1,8 +1,7 @@
 # VM Monitor
 
-A lightweight, self-hosted VM monitoring system with a Python agent and Flask-based web dashboard.
 
-![Dashboard Overview](screenshots/dashboard_overview.png)
+A lightweight, self-hosted VM monitoring system with a Python agent and Flask-based web dashboard.
 
 ## Features
 
