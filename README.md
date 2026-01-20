@@ -22,6 +22,7 @@ git clone https://github.com/aydinguven/vm-monitor.git
 cd vm-monitor
 
 # Interactive setup (recommended)
+chmod +x scripts/*.sh
 ./scripts/setup_dashboard.sh
 
 # Or batch mode
@@ -32,6 +33,7 @@ cd vm-monitor
 
 ```bash
 # Interactive setup
+chmod +x scripts/*.sh
 ./scripts/setup.sh
 
 # Or batch mode with feature flags
@@ -49,6 +51,21 @@ cd vm-monitor
 
 # Or batch mode
 .\agent\setup.ps1 -Batch -Server "http://dashboard:5000" -Key "YOUR_KEY"
+```
+
+## Uninstall
+
+To remove the agent or dashboard and clean up all files/configs:
+
+```bash
+# Remove Agent (Linux)
+./scripts/cleanup_agent.sh
+
+# Remove Dashboard (Linux)
+./scripts/cleanup_dashboard.sh
+
+# Uninstall Agent (Windows)
+.\agent\cleanup.ps1
 ```
 
 ## Configuration
@@ -134,9 +151,8 @@ vm-monitor/
 ├── scripts/            # Installation scripts
 │   ├── setup.sh              # Interactive Linux agent installer
 │   ├── setup_dashboard.sh    # Interactive dashboard installer
-│   ├── install_agent.sh      # Legacy agent installer
-│   └── install_dashboard.sh  # Legacy dashboard installer
-├── screenshots/        # Dashboard screenshots
+│   ├── cleanup_agent.sh      # Agent uninstaller
+│   └── cleanup_dashboard.sh  # Dashboard uninstaller
 └── docs/               # Documentation
 ```
 
