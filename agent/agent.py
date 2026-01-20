@@ -750,14 +750,8 @@ def get_containers() -> list:
     containers = []
     
     def run_container_cmd(runtime, user=None):
-        """Run container list command, optionally as a specific user.
-        Resolves full path to binary to satisfy sudoers restrictions.
-        """
-        binary_path = shutil.which(runtime)
-        if not binary_path:
-             return []
-             
-        cmd = [binary_path, "ps", "--format", "{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.CreatedAt}}"]
+        """Run container list command, optionally as a specific user."""
+        cmd = [runtime, "ps", "--format", "{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.CreatedAt}}"]
         
         env = os.environ.copy()
         

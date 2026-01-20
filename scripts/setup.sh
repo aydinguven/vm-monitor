@@ -306,14 +306,11 @@ EOF
     
     # 3. Create sudoers file
     # Allow: Update Wrapper, Reboot, Systemctl Restart (for self-healing if needed)
-    # Also allow Podman/Docker for container discovery (rootless podman needs sudo -u user)
-    # Using Cmnd_Alias for cleaner config and !requiretty for safe execution
     sudo bash -c "cat > /etc/sudoers.d/vm-agent" <<EOF
-Defaults:vm-agent !requiretty
-Cmnd_Alias CONTAINER_CMDS = /usr/bin/podman, /bin/podman, /usr/bin/docker, /bin/docker
 vm-agent ALL=(ALL) NOPASSWD: /usr/local/bin/vm-agent-sysupdate
 vm-agent ALL=(ALL) NOPASSWD: /usr/sbin/reboot, /usr/sbin/shutdown
-vm-agent ALL=(ALL) NOPASSWD: CONTAINER_CMDS
+vm-agent ALL=(ALL) NOPASSWD: /usr/bin/podman, /bin/podman
+vm-agent ALL=(ALL) NOPASSWD: /usr/bin/docker, /bin/docker
 EOF
     sudo chmod 440 /etc/sudoers.d/vm-agent
     
