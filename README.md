@@ -2,13 +2,15 @@
 
 A lightweight, self-hosted VM monitoring system with a Python agent and Flask-based web dashboard.
 
+> **Platform-Agnostic**: Runs anywhere Python runs. No compiled binaries, no OS-specific dependencies. Pre-built wheels included for offline installation.
+
 ![Dashboard Overview](docs/images/dashboard_overview.png)
 
 ## ✨ Features
 
 ### Real-time Monitoring
 - **System Metrics**: CPU (avg/instant), RAM, Disk (all partitions), Swap, Network I/O
-- **Historical Charts**: 1h, 24h, 7d, 30d time ranges with interactive graphs
+- **Historical Charts**: 5min to 30d time ranges with interactive graphs
 - **Process Tracking**: Top CPU/RAM consumers per VM
 
 ![VM Details](docs/images/vm_details.png)
