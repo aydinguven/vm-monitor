@@ -68,6 +68,22 @@ To remove the agent or dashboard and clean up all files/configs:
 .\agent\cleanup.ps1
 ```
 
+## Updating
+
+To update to the latest version without losing data:
+
+### Dashboard
+1. Pull the latest changes: `git pull`
+2. **Crucial:** Note your current API Key from `/etc/vm-dashboard.env`.
+3. Run the installer again: `./scripts/setup_dashboard.sh`
+4. When prompted, enter your **existing API Key** and Secret Key to ensure connected agents stay authenticated.
+   - *Database data (`vm_metrics.db`) is preserved automatically.*
+
+### Agents
+1. Pull the latest changes: `git pull`
+2. Run the installer again: `./scripts/setup.sh` (Linux) or `.\agent\setup.ps1` (Windows)
+3. Re-enter your Dashboard URL and API Key when prompted.
+
 ## Configuration
 
 ### Dashboard Environment Variables
