@@ -221,12 +221,28 @@ VM_DASHBOARD_API_KEY=$API_KEY
 EOF
     sudo chmod 600 /etc/vm-dashboard.env
     
+    # 6. Initialize database
+    echo -e "${BLUE}[6/7] Initializing database...${NC}"
+    cd "$INSTALL_DIR"
+    
+    # Set environment variables for Flask
+    export FLASK_SECRET_KEY="$SECRET_KEY"
+    export VM_DASHBOARD_API_KEY="$API_KEY"
+    
+    # Initialize database using Flask shell
+    sudo -E ./venv/bin/python -c "
+from app import app, db
+with app.app_context():
+    db.create_all()
+    print('  Database tables created')
+"
+    
     # Set ownership
     sudo chown -R vm-agent:vm-agent "$INSTALL_DIR"
     sudo chmod -R 755 "$INSTALL_DIR"
     
-    # 6. Setup systemd service
-    echo -e "${BLUE}[6/6] Configuring systemd service...${NC}"
+    # 7. Setup systemd service
+    echo -e "${BLUE}[7/7] Configuring systemd service...${NC}"
     sudo bash -c "cat > /etc/systemd/system/vm-agent-dashboard.service" <<EOF
 [Unit]
 Description=VM Monitoring Dashboard
