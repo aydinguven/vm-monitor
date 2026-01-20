@@ -77,21 +77,31 @@ fi
 rm -rf "$BACKUP_DIR"
 
 # 5. Migration (Env -> JSON)
-if [ ! -f "$INSTALL_DIR/instance/config.json" ] && [ -f "/etc/vm-dashboard.env" ]; then
-    print_step "Migrating legacy .env to config.json..."
-    # Source the env file
-    set -a; source /etc/vm-dashboard.env; set +a
-    
-    # Create config.json
-    mkdir -p "$INSTALL_DIR/instance"
-    cat > "$INSTALL_DIR/instance/config.json" <<EOF
+if [ ! -f "$INSTALL_DIR/instance/config.json" ]; then
+    ENV_FILE=""
+    if [ -f "/etc/vm-dashboard.env" ]; then
+        ENV_FILE="/etc/vm-dashboard.env"
+    elif [ -f "/etc/vm-dashboard.env.bak" ]; then
+        ENV_FILE="/etc/vm-dashboard.env.bak"
+    fi
+
+    if [ -n "$ENV_FILE" ]; then
+        print_step "Migrating legacy .env ($ENV_FILE) to config.json..."
+        # Source the env file
+        set -a; source "$ENV_FILE"; set +a
+        
+        # Create config.json
+        mkdir -p "$INSTALL_DIR/instance"
+        cat > "$INSTALL_DIR/instance/config.json" <<EOF
 {
   "secret_key": "$FLASK_SECRET_KEY",
   "api_key": "$VM_DASHBOARD_API_KEY",
   "timezone": "Europe/Istanbul"
 }
 EOF
-    echo "Migration complete. legacy .env preserved in /etc/"
+        echo "Migration complete."
+        # Permission fix will happen next
+    fi
 fi
 
 # 6. Fix Permissions
