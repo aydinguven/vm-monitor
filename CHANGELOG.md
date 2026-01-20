@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.39] - 2026-01-20
+
+### Added
+- Interactive installation scripts with feature flag toggles
+  - `scripts/setup.sh` - Linux agent installer with prompts
+  - `agent/setup.ps1` - Windows agent installer (PowerShell)
+  - `scripts/setup_dashboard.sh` - Dashboard installer with auto-generated keys
+- Batch mode support (`--batch`) for automated deployments
+- Screenshots in `screenshots/` directory
+
 ## [1.38] - 2026-01-20
 
 ### Added

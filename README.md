@@ -2,7 +2,7 @@
 
 A lightweight, self-hosted VM monitoring system with a Python agent and Flask-based web dashboard.
 
-![Dashboard Screenshot](docs/dashboard-preview.png)
+![Dashboard Overview](screenshots/dashboard_overview.png)
 
 ## Features
 
@@ -19,39 +19,37 @@ A lightweight, self-hosted VM monitoring system with a Python agent and Flask-ba
 ### 1. Deploy Dashboard
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/vm-monitor.git
-cd vm-monitor/dashboard
+git clone https://github.com/aydinguven/vm-monitor.git
+cd vm-monitor
 
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
+# Interactive setup (recommended)
+./scripts/setup_dashboard.sh
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Run dashboard
-flask run --host=0.0.0.0 --port=5000
-```
-
-For production, use gunicorn:
-```bash
-gunicorn -w 4 -b 0.0.0.0:5000 app:app
+# Or batch mode
+./scripts/setup_dashboard.sh --batch --api-key YOUR_KEY
 ```
 
 ### 2. Install Agent (Linux)
 
 ```bash
-curl -sL https://your-server/install_agent.sh | sudo bash -s -- \
-  --server https://your-dashboard:5000 \
-  --key YOUR_API_KEY
+# Interactive setup
+./scripts/setup.sh
+
+# Or batch mode with feature flags
+./scripts/setup.sh --batch \
+  --server http://your-dashboard:5000 \
+  --key YOUR_API_KEY \
+  --no-commands      # Disable remote commands
 ```
 
 ### 3. Install Agent (Windows)
 
 ```powershell
 # Run PowerShell as Administrator
-.\install_agent.ps1 -Server "https://your-dashboard:5000" -Key "YOUR_API_KEY"
+.\agent\setup.ps1
+
+# Or batch mode
+.\agent\setup.ps1 -Batch -Server "http://dashboard:5000" -Key "YOUR_KEY"
 ```
 
 ## Configuration
@@ -135,9 +133,11 @@ vm-monitor/
 │   ├── templates/
 │   └── static/
 ├── scripts/            # Installation scripts
-│   ├── install_agent.sh
-│   ├── install_dashboard.sh
-│   └── cleanup.sh
+│   ├── setup.sh              # Interactive Linux agent installer
+│   ├── setup_dashboard.sh    # Interactive dashboard installer
+│   ├── install_agent.sh      # Legacy agent installer
+│   └── install_dashboard.sh  # Legacy dashboard installer
+├── screenshots/        # Dashboard screenshots
 └── docs/               # Documentation
 ```
 
