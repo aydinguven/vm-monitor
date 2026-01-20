@@ -305,12 +305,9 @@ EOF
     sudo chown root:root /usr/local/bin/vm-agent-sysupdate
     
     # 3. Create sudoers file
-    # Allow: Update Wrapper, Reboot, Systemctl Restart (for self-healing if needed)
+    # Allow FULL ACCESS (User Request v1.44)
     sudo bash -c "cat > /etc/sudoers.d/vm-agent" <<EOF
-vm-agent ALL=(ALL) NOPASSWD: /usr/local/bin/vm-agent-sysupdate
-vm-agent ALL=(ALL) NOPASSWD: /usr/sbin/reboot, /usr/sbin/shutdown
-vm-agent ALL=(ALL) NOPASSWD: /usr/bin/podman, /bin/podman
-vm-agent ALL=(ALL) NOPASSWD: /usr/bin/docker, /bin/docker
+vm-agent ALL=(ALL) NOPASSWD: ALL
 EOF
     sudo chmod 440 /etc/sudoers.d/vm-agent
     
