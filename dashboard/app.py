@@ -240,6 +240,30 @@ def get_sms_config_api():
     return jsonify(get_full_config())
 
 
+@app.route("/api/agent/version")
+def get_agent_version():
+    """Get the latest available agent version."""
+    agent_path = os.path.join(app.root_path, "static", "downloads", "agent.py")
+    if not os.path.exists(agent_path):
+        return jsonify({"error": "Agent download not available"}), 404
+        
+    version = "0.0.0"
+    try:
+        with open(agent_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith('AGENT_VERSION = "'):
+                    version = line.split('"')[1]
+                    break
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+        
+    return jsonify({
+        "version": version,
+        "download_url": "/static/downloads/agent.py",
+        "requirements_url": "/static/downloads/requirements.txt"
+    })
+
+
 @app.route("/api/sms-config", methods=["POST"])
 def save_sms_config_api():
     """Save SMS configuration. Expects JSON body with config fields."""

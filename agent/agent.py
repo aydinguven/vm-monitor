@@ -145,71 +145,113 @@ logger = logging.getLogger(__name__)
 # Auto-Update Functions
 # =============================================================================
 
-def check_for_updates() -> None:
-    """Check for updates from the central server."""
+def check_for_updates() -> bool:
+    """Check for updates from the dashboard."""
+    # Check env var first
+    if os.getenv("VM_AGENT_AUTO_UPDATE", "true").lower() != "true":
+        return False
+        
     try:
-        version_url = f"{UPDATE_URL}/version.txt"
+        # Use SERVER_URL which points to the dashboard
+        version_url = f"{SERVER_URL}/api/agent/version"
         logger.debug(f"Checking for updates at {version_url}")
         
-        resp = requests.get(version_url, timeout=5)
+        resp = requests.get(version_url, headers={"X-API-Key": API_KEY}, timeout=10)
         if resp.status_code != 200:
-            return
+            return False
 
-        remote_version = resp.text.strip()
+        data = resp.json()
+        remote_version = data.get("version")
         
-        # Use proper version comparison
+        if not remote_version:
+            return False
+            
         if version.parse(remote_version) > version.parse(AGENT_VERSION):
             logger.info(f"New version available: {remote_version} (current: {AGENT_VERSION})")
-            return perform_update(remote_version)
+            return perform_update(remote_version, data)
             
-    except requests.RequestException as e:
+    except Exception as e:
         logger.warning(f"Update check failed: {e}")
     
     return False
 
 
-def perform_update(new_version: str) -> None:
+def perform_update(new_version: str, data: dict) -> bool:
     """Download and apply update."""
     import tempfile
     
     try:
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        
-        # Create temp directory for downloads (avoids read-only filesystem issues)
         temp_dir = tempfile.mkdtemp(prefix="vm-agent-update-")
         logger.debug(f"Using temp directory: {temp_dir}")
         
-        # Download new files to temp
-        files_to_update = ["agent.py", "requirements.txt"]
+        # Dashboard provides relative URLs
+        dl_url_path = data.get("download_url")
+        req_url_path = data.get("requirements_url")
         
-        for filename in files_to_update:
-            logger.info(f"Downloading {filename}...")
-            resp = requests.get(f"{UPDATE_URL}/agent/{filename}", timeout=10)
-            if resp.status_code != 200:
-                logger.error(f"Failed to download {filename}")
-                shutil.rmtree(temp_dir, ignore_errors=True)
-                return
+        if not dl_url_path:
+            return False
             
-            with open(os.path.join(temp_dir, filename), "wb") as f:
+        files_to_download = [("agent.py", dl_url_path)]
+        if req_url_path:
+            files_to_download.append(("requirements.txt", req_url_path))
+        
+        # Download files
+        for fname, url_path in files_to_download:
+            full_url = f"{SERVER_URL.rstrip('/')}/{url_path.lstrip('/')}"
+            logger.info(f"Downloading {fname} from {full_url}...")
+            
+            resp = requests.get(full_url, headers={"X-API-Key": API_KEY}, timeout=20)
+            if resp.status_code != 200:
+                logger.error(f"Failed to download {fname}: {resp.status_code}")
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                return False
+            
+            with open(os.path.join(temp_dir, fname), "wb") as f:
                 f.write(resp.content)
 
-        # Install new requirements from temp
-        logger.info("Installing new requirements...")
-        venv_pip = os.path.join(base_dir, "venv", "bin", "pip")
-        pip_cmd = venv_pip if os.path.exists(venv_pip) else "pip3"
-        
-        subprocess.run(
-            [pip_cmd, "install", "-r", os.path.join(temp_dir, "requirements.txt")],
-            check=True,
-            capture_output=True
-        )
+        # Install new requirements
+        if req_url_path:
+            logger.info("Installing new requirements...")
+            venv_pip = os.path.join(base_dir, "venv", "bin", "pip")
+            if IS_WINDOWS:
+                 venv_pip = os.path.join(base_dir, "venv", "Scripts", "pip.exe")
+            
+            pip_cmd = venv_pip if os.path.exists(venv_pip) else "pip3"
+            if IS_WINDOWS and not os.path.exists(pip_cmd):
+                 pip_cmd = "pip"
+            
+            try:
+                subprocess.run(
+                    [pip_cmd, "install", "-r", os.path.join(temp_dir, "requirements.txt")],
+                    check=True, capture_output=True
+                )
+            except Exception as e:
+                logger.warning(f"Requirements install warning: {e}")
 
-        # Copy files from temp to final location
-        for filename in files_to_update:
-            src = os.path.join(temp_dir, filename)
-            dst = os.path.join(base_dir, filename)
-            shutil.copy2(src, dst)
-            logger.debug(f"Updated {dst}")
+        # Copy files to final location
+        agent_dst = os.path.join(base_dir, "agent.py")
+        
+        # Windows: Rename running file to allow overwrite
+        if IS_WINDOWS and os.path.exists(agent_dst):
+            try:
+                backup_path = agent_dst + ".old"
+                if os.path.exists(backup_path):
+                    os.remove(backup_path) # Remove old backup
+                os.rename(agent_dst, backup_path)
+            except OSError as e:
+                logger.warning(f"Could not rename running agent.py (Windows): {e}")
+                # Try overwrite anyway (might work if not strictly locked)
+
+        for fname, _ in files_to_download:
+            src = os.path.join(temp_dir, fname)
+            dst = os.path.join(base_dir, fname)
+            try:
+                shutil.copy2(src, dst)
+                logger.debug(f"Updated {dst}")
+            except Exception as e:
+                logger.error(f"Failed to copy {fname}: {e}")
+                return False
 
         # Cleanup temp
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -217,11 +259,7 @@ def perform_update(new_version: str) -> None:
         logger.info(f"Update to v{new_version} applied. Requesting restart...")
         return True
 
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to install requirements: {e}")
-    except PermissionError as e:
-        logger.error(f"Update failed (permission denied): {e}. Try: sudo chattr -i /opt/vm-agent/*")
-    except OSError as e:
+    except Exception as e:
         logger.error(f"Update failed: {e}")
     
     return False
