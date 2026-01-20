@@ -23,11 +23,11 @@ All notable changes to this project will be documented in this file.
 ## [1.37] - 2026-01-20
 
 ### Added
-- Turkey timezone (Europe/Istanbul) for SMS schedule
+- Configurable timezone support for SMS schedule (default: Europe/Istanbul)
 - `/api/schedule` endpoint to view upcoming SMS times
 
 ### Fixed
-- Windows CPU tracking - System Idle Process no longer shows 173%
+- Windows CPU tracking - System Idle Process excluded from metrics
 
 ## [1.36] - 2026-01-20
 
