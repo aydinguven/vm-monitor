@@ -26,6 +26,7 @@ else
             --agent) REMOVE_AGENT=true ;;
             --dashboard) REMOVE_DASHBOARD=true ;;
             --all) REMOVE_AGENT=true; REMOVE_DASHBOARD=true ;;
+            --force) FORCE=true ;;
             --help)
                 echo "VM Monitor Cleanup Script"
                 echo ""
@@ -34,6 +35,7 @@ else
                 echo "  ./cleanup.sh --agent     Remove agent only"
                 echo "  ./cleanup.sh --dashboard Remove dashboard only"
                 echo "  ./cleanup.sh --all       Remove both (same as no args)"
+                echo "  ./cleanup.sh --force     Skip confirmation prompt"
                 exit 0
                 ;;
             *) echo "Unknown parameter: $1"; exit 1 ;;
@@ -56,10 +58,13 @@ if [ "$REMOVE_DASHBOARD" = true ]; then
 fi
 echo ""
 
-read -p "$(echo -e ${RED}Are you sure you want to proceed? [y/N]:${NC} )" confirm
-if [[ ! "$confirm" =~ ^[Yy] ]]; then
-    echo "Cancelled."
-    exit 0
+if [ "$FORCE" != true ]; then
+    echo -n -e "${RED}Are you sure you want to proceed? [y/N]: ${NC}"
+    read confirm
+    if [[ ! "$confirm" =~ ^[Yy] ]]; then
+        echo "Cancelled."
+        exit 0
+    fi
 fi
 
 echo ""
