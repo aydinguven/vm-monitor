@@ -108,6 +108,8 @@ The agent is **pure Python** - no compiled components. Runs on any system with P
 - Lists **Kubernetes Pods** running on the node
 - Manage containers: view logs, restart, stop, start
 
+![Containers & Kubernetes Pods](docs/images/containers_pods.png)
+
 ### Agent Auto-Updates
 Agents poll the dashboard for new versions and update seamlessly:
 1. Downloads new version from dashboard
