@@ -301,29 +301,6 @@ vm-monitor/
 
 ---
 
-## 🗺️ Roadmap
-
-### Coming Soon
-- [ ] **Email Alerts** - SMTP notifications alongside SMS
-- [ ] **Webhook Integration** - Slack, Discord, PagerDuty
-- [ ] **User Authentication** - Multi-user access with roles
-- [ ] **Log Collection** - Basic log aggregation from agents
-
-### Planned
-- [ ] **InfluxDB/Prometheus Export** - For users who want long-term storage
-- [ ] **Agent Groups** - Organize VMs by environment/team
-- [ ] **Custom Metrics** - User-defined metric collection
-- [ ] **iOS/Android App** - Native mobile experience
-
-### Under Consideration
-- [ ] Windows Dashboard - Run dashboard on Windows (currently Linux only)
-- [ ] Ansible/Terraform Modules - Infrastructure-as-code deployment
-- [ ] SSO Integration - OIDC/SAML authentication
-
-Have a feature request? [Open an issue!](https://github.com/aydinguven/vm-monitor/issues)
-
----
-
 ## ❓ FAQ
 
 <details>
@@ -353,7 +330,7 @@ Yes! Pre-built Python wheels are included. Clone the repo to a USB drive and ins
 <details>
 <summary><strong>Is it production-ready?</strong></summary>
 
-It's running in production monitoring 20+ VMs across multiple cloud providers. Use at your own discretion.
+Yes. It's running in air-gapped production monitoring 100+ VMs across 4 vCenters, plus 20+ VMs in dev across Proxmox, AWS, Google Cloud, and Oracle Cloud.
 </details>
 
 ---
@@ -370,7 +347,7 @@ Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 <div align="center">
 
-**Built with ❤️ by [Aydin Guven](https://github.com/aydinguven)**
+**Built with ❤️ by [Aydin Aslangoren](https://github.com/aydinguven)**
 
 ⭐ Star this repo if you find it useful!
 
