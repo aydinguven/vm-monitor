@@ -11,14 +11,6 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-export NC
-
-# Reset terminal on exit (Fix formatting issues)
-cleanup_term() {
-    echo -e "${NC}"
-}
-trap cleanup_term EXIT
-
 FORCE=false
 
 # Parse args
@@ -76,17 +68,6 @@ echo -e "  ${CYAN}Removing application files...${NC}"
 sudo rm -rf /opt/vm-agent
 sudo rm -f /etc/vm-agent.conf
 sudo rm -rf /etc/vm-agent
-
-# Remove Users, Groups, Sudoers (v1.44)
-echo -e "  ${CYAN}Removing user and permissions...${NC}"
-sudo rm -f /etc/sudoers.d/vm-agent
-sudo rm -f /usr/local/bin/vm-agent-sysupdate
-if id "vm-agent" &>/dev/null; then
-    sudo userdel vm-agent 2>/dev/null || true
-fi
-if getent group vm-agent >/dev/null; then
-    sudo groupdel vm-agent 2>/dev/null || true
-fi
 
 # Remove temp files
 sudo rm -rf /tmp/vm-agent* 2>/dev/null || true

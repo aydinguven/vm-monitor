@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.45 (Dedicated Agent User) (2026-01-20)
+- **Security**: Agent now runs as dedicated `vm-agent` user (not root).
+- **Security**: Dynamic sudoers rules generated for detected binaries (podman, docker, systemctl, etc.).
+- **Security**: Principle of Least Privilege - agent can only execute approved commands.
+- **Fix**: Container discovery now uses `sudo` for root-level queries.
+
 ## v1.44 (Hardening) (2026-01-20)
 - **Security**: Enforced strict `750/640` permissions on dashboard files.
 - **Security**: `setup_dashboard.sh` and `update_dashboard.sh` now exclude `venv` from strict permissions to preserve execution.

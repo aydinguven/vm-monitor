@@ -170,22 +170,23 @@ install_agent() {
         sudo dnf install -y -q python3 python3-pip curl
     fi
     
-    # 2. Setup directories
-    echo -e "${BLUE}[2/6] Setting up directories...${NC}"
+    # 2. Create vm-agent user
+    echo -e "${BLUE}[2/7] Creating vm-agent user...${NC}"
+    if ! id "vm-agent" &>/dev/null; then
+        sudo useradd -r -s /bin/false -d /opt/vm-agent vm-agent
+        echo "  Created system user: vm-agent"
+    else
+        echo "  User vm-agent already exists"
+    fi
+    
+    # 3. Setup directories
+    echo -e "${BLUE}[3/7] Setting up directories...${NC}"
     sudo mkdir -p "$INSTALL_DIR"
     sudo mkdir -p /etc/vm-agent/kubeconfigs
     
-    # Create vm-agent user (Hardening v1.44)
-    if ! id "vm-agent" &>/dev/null; then
-        echo -e "${BLUE}  Creating vm-agent user...${NC}"
-        sudo useradd -r -s /sbin/nologin -d "$INSTALL_DIR" vm-agent
-    fi
-    sudo chown -R vm-agent:vm-agent "$INSTALL_DIR"
-    sudo chmod 750 "$INSTALL_DIR"
-    
     # 3. Discover kubeconfigs (if pods enabled)
     if [ "$FEATURE_PODS" = "true" ]; then
-        echo -e "${BLUE}[3/6] Discovering kubeconfigs...${NC}"
+        echo -e "${BLUE}[4/7] Discovering kubeconfigs...${NC}"
         for cfg in /etc/kubernetes/admin.conf /etc/rancher/k3s/k3s.yaml; do
             if [ -f "$cfg" ]; then
                 name=$(basename "$cfg")
@@ -200,15 +201,13 @@ install_agent() {
                 echo "  Found: $user_home/.kube/config"
             fi
         done
-        sudo chown -R vm-agent:vm-agent /etc/vm-agent/kubeconfigs
         sudo chmod 600 /etc/vm-agent/kubeconfigs/* 2>/dev/null || true
-        sudo chmod 700 /etc/vm-agent/kubeconfigs
     else
-        echo -e "${BLUE}[3/6] Skipping kubeconfig discovery (pods disabled)${NC}"
+        echo -e "${BLUE}[4/7] Skipping kubeconfig discovery (pods disabled)${NC}"
     fi
     
-    # 4. Copy agent code
-    echo -e "${BLUE}[4/6] Installing agent code...${NC}"
+    # 5. Copy agent code
+    echo -e "${BLUE}[5/7] Installing agent code...${NC}"
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     SOURCE_ROOT="$(dirname "$SCRIPT_DIR")"
     
@@ -238,8 +237,8 @@ install_agent() {
         # We assume dependencies like distro/psutil are handled by pip install later
     fi
     
-    # 5. Setup Python venv and install deps
-    echo -e "${BLUE}[5/6] Setting up Python environment...${NC}"
+    # 6. Setup Python venv and install deps
+    echo -e "${BLUE}[6/7] Setting up Python environment...${NC}"
     cd "$INSTALL_DIR"
     
     if sudo python3 -m venv venv 2>/dev/null; then
@@ -258,8 +257,8 @@ install_agent() {
         sudo pip3 install psutil requests distro packaging -q
     fi
     
-    # 6. Create configuration (JSON)
-    echo -e "${BLUE}[6/6] Generating configuration...${NC}"
+    # 7. Create configuration (JSON)
+    echo -e "${BLUE}[7/7] Generating configuration...${NC}"
     sudo bash -c "cat > $INSTALL_DIR/agent_config.json" <<EOF
 {
   "server_url": "$SERVER_URL",
@@ -275,41 +274,6 @@ install_agent() {
 }
 EOF
     sudo chmod 600 "$INSTALL_DIR/agent_config.json"
-    
-    # Sudoers & Groups (Hardening v1.44)
-    # 1. Add to docker group if exists
-    if getent group docker >/dev/null; then
-        echo -e "${BLUE}  Adding vm-agent to docker group...${NC}"
-        sudo usermod -aG docker vm-agent
-    fi
-    
-    # 2. Create system update wrapper securely
-    echo -e "${BLUE}  Configuring sudoers for system updates...${NC}"
-    sudo bash -c "cat > /usr/local/bin/vm-agent-sysupdate" <<'EOF'
-#!/bin/bash
-# Secure wrapper for system updates by vm-agent
-set -e
-if command -v apt-get &> /dev/null; then
-    export DEBIAN_FRONTEND=noninteractive
-    apt-get update && apt-get upgrade -y
-elif command -v dnf &> /dev/null; then
-    dnf update -y
-elif command -v yum &> /dev/null; then
-    yum update -y
-else
-    echo "No supported package manager found."
-    exit 1
-fi
-EOF
-    sudo chmod 755 /usr/local/bin/vm-agent-sysupdate
-    sudo chown root:root /usr/local/bin/vm-agent-sysupdate
-    
-    # 3. Create sudoers file
-    # Allow FULL ACCESS (User Request v1.44)
-    sudo bash -c "cat > /etc/sudoers.d/vm-agent" <<EOF
-vm-agent ALL=(ALL) NOPASSWD: ALL
-EOF
-    sudo chmod 440 /etc/sudoers.d/vm-agent
     
     # Setup systemd service
     if [ -f "$INSTALL_DIR/venv/bin/python" ]; then
@@ -334,6 +298,35 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
+    
+    # Generate sudoers rules for container/command access
+    echo "  Generating sudoers rules..."
+    PODMAN_PATH=$(which podman 2>/dev/null)
+    DOCKER_PATH=$(which docker 2>/dev/null)
+    SYSTEMCTL_PATH=$(which systemctl 2>/dev/null)
+    REBOOT_PATH=$(which reboot 2>/dev/null)
+    DNF_PATH=$(which dnf 2>/dev/null)
+    YUM_PATH=$(which yum 2>/dev/null)
+    APT_PATH=$(which apt-get 2>/dev/null)
+    
+    sudo bash -c "cat > /etc/sudoers.d/vm-agent" <<EOF
+# VM Agent - Minimal Sudo Rules (v1.45)
+Defaults:vm-agent !requiretty
+EOF
+    
+    [ -n "$PODMAN_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $PODMAN_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$DOCKER_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $DOCKER_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$SYSTEMCTL_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $SYSTEMCTL_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$REBOOT_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $REBOOT_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$DNF_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $DNF_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$YUM_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $YUM_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$APT_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $APT_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    
+    sudo chmod 440 /etc/sudoers.d/vm-agent
+    
+    # Fix ownership
+    sudo chown -R vm-agent:vm-agent "$INSTALL_DIR"
+    sudo chown -R vm-agent:vm-agent /etc/vm-agent
     
     sudo systemctl daemon-reload
     sudo systemctl enable vm-agent

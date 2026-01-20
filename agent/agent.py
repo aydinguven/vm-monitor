@@ -35,7 +35,7 @@ if not IS_WINDOWS:
 # Configuration
 # =============================================================================
 
-AGENT_VERSION = "1.44"
+AGENT_VERSION = "1.45"
 STRESS_DURATION = 75  # Duration in seconds for stress tests
 
 # Config loader
@@ -751,15 +751,18 @@ def get_containers() -> list:
     
     def run_container_cmd(runtime, user=None):
         """Run container list command, optionally as a specific user."""
-        cmd = [runtime, "ps", "--format", "{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.CreatedAt}}"]
+        base_cmd = [runtime, "ps", "--format", "{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.CreatedAt}}"]
         
         env = os.environ.copy()
         
         if user:
             # For rootless podman, we need to run as that user
             # and set XDG_RUNTIME_DIR
-            cmd = ["sudo", "-u", user] + cmd
+            cmd = ["sudo", "-u", user] + base_cmd
             env["XDG_RUNTIME_DIR"] = f"/run/user/{_get_uid(user)}"
+        else:
+            # For root-level containers, agent runs as vm-agent so needs sudo
+            cmd = ["sudo"] + base_cmd
         
         try:
             result = subprocess.run(
@@ -1181,34 +1184,21 @@ def execute_command(cmd_data: dict):
                 report_result(cmd_id, "completed", "No updates found. Agent is up to date.")
                 
         elif cmd_key == "system_update":
-            report_result(cmd_id, "running", "Detecting update mechanism...")
+            report_result(cmd_id, "running", "Detecting package manager...")
             update_cmd = []
             
-            # Check for secure wrapper (v1.44)
-            if os.path.exists("/usr/local/bin/vm-agent-sysupdate"):
-                 update_cmd = ["sudo", "/usr/local/bin/vm-agent-sysupdate"]
-            
-            # Fallback for root/legacy
-            elif shutil.which("apt-get"):
-                if os.geteuid() != 0:
-                     report_result(cmd_id, "failed", "System update requires root or wrapper script.")
-                     return
+            # Detect package manager
+            if shutil.which("apt-get"):
                 update_cmd = ["bash", "-c", "DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y"]
             elif shutil.which("dnf"):
-                if os.geteuid() != 0:
-                     report_result(cmd_id, "failed", "System update requires root or wrapper script.")
-                     return
                 update_cmd = ["dnf", "update", "-y"]
             elif shutil.which("yum"):
-                if os.geteuid() != 0:
-                     report_result(cmd_id, "failed", "System update requires root or wrapper script.")
-                     return
                 update_cmd = ["yum", "update", "-y"]
             else:
-                report_result(cmd_id, "failed", "No supported package manager found")
+                report_result(cmd_id, "failed", "No supported package manager found (apt/dnf/yum)")
                 return
 
-            report_result(cmd_id, "running", f"Running system update... This may take a while...")
+            report_result(cmd_id, "running", f"Running system update ({update_cmd[0]}). This may take a while...")
             
             try:
                 # 10 minute timeout for updates
@@ -1223,10 +1213,7 @@ def execute_command(cmd_data: dict):
                 if result.returncode == 0:
                     report_result(cmd_id, "completed", "Update successful. Rebooting system now...\n\n" + output[-500:]) # Show last 500 chars
                     time.sleep(3)
-                    if os.geteuid() != 0:
-                        subprocess.run(["sudo", "reboot"])
-                    else:
-                        subprocess.run(["reboot"])
+                    subprocess.run(["reboot"])
                 else:
                     report_result(cmd_id, "failed", "Update failed:\n" + output)
             except subprocess.TimeoutExpired:

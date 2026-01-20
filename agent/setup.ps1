@@ -218,14 +218,7 @@ Set-Location '$InstallDir'
     
     $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$InstallDir\run_agent.ps1`""
     $trigger = New-ScheduledTaskTrigger -AtStartup
-    # Run as NetworkService (Hardening v1.44)
-    # Grant permissions to install dir first
-    $acl = Get-Acl $InstallDir
-    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Network Service", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
-    $acl.SetAccessRule($accessRule)
-    Set-Acl $InstallDir $acl
-    
-    $principal = New-ScheduledTaskPrincipal -UserId "NETWORK SERVICE" -LogonType ServiceAccount -RunLevel Highest
+    $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
     $settings = New-ScheduledTaskSettingsSet -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit (New-TimeSpan -Days 365)
     
     Register-ScheduledTask -TaskName "VMAgent" -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null
