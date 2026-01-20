@@ -200,7 +200,9 @@ install_agent() {
                 echo "  Found: $user_home/.kube/config"
             fi
         done
+        sudo chown -R vm-agent:vm-agent /etc/vm-agent/kubeconfigs
         sudo chmod 600 /etc/vm-agent/kubeconfigs/* 2>/dev/null || true
+        sudo chmod 700 /etc/vm-agent/kubeconfigs
     else
         echo -e "${BLUE}[3/6] Skipping kubeconfig discovery (pods disabled)${NC}"
     fi
