@@ -77,12 +77,17 @@ fi
 rm -rf "$BACKUP_DIR"
 
 # 5. Fix Permissions
-print_step "Fixing permissions..."
+print_step "Fixing permissions (Hardening)..."
 chown -R vm-agent:vm-agent "$INSTALL_DIR"
-chmod -R 755 "$INSTALL_DIR"
-# Secure config files
-[ -f "$INSTALL_DIR/instance/sms_config.json" ] && chmod 600 "$INSTALL_DIR/instance/sms_config.json"
-[ -f "/etc/vm-dashboard.env" ] && chmod 600 "/etc/vm-dashboard.env"
+# 750/640 for hardening, excluding venv
+find "$INSTALL_DIR" -type d -not -path "$INSTALL_DIR/venv*" -exec chmod 750 {} \;
+find "$INSTALL_DIR" -type f -not -path "$INSTALL_DIR/venv*" -exec chmod 640 {} \;
+
+# Ensure venv executables
+chmod -R 755 "$INSTALL_DIR/venv"
+
+# Secrets
+[ -f "$INSTALL_DIR/instance/config.json" ] && chmod 600 "$INSTALL_DIR/instance/config.json"
 
 # 6. Update Dependencies
 print_step "Updating python dependencies..."
@@ -104,8 +109,9 @@ print_step "Running database migrations..."
 # Using the same logic as setup - create_all() is idempotent for checking tables
 # If we had real migrations (alembic), we'd run upgrade here.
 # For now, just ensuring tables exist is enough.
-export $(grep -v '^#' /etc/vm-dashboard.env | xargs)
-sudo -E -u vm-agent ./venv/bin/python -c "
+print_step "Running database migrations..."
+# Run as vm-agent user, app loads config.json automatically
+sudo -u vm-agent ./venv/bin/python -c "
 from app import app, db
 with app.app_context():
     db.create_all()

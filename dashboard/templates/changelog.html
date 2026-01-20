@@ -116,12 +116,25 @@
 
         <div class="version-card">
             <div class="version-header">
-                <div class="version-title">v1.43 <span class="badge current">Latest</span></div>
+                <div class="version-title">v1.44 <span class="badge current">Latest</span></div>
+                <span class="version-date">Jan 20, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Security Hardening:</strong> Enforced strict file permissions (750 directories, 640 files,
+                    600 secrets).</li>
+                <li><strong>Update Script:</strong> `update_dashboard.sh` completely modernized (No env vars).</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.43</div>
                 <span class="version-date">Jan 20, 2026</span>
             </div>
             <ul>
                 <li><strong>No More Env Vars:</strong> Switched to <code>instance/config.json</code> (Dashboard) and
-                    <code>agent_config.json</code> (Agent).</li>
+                    <code>agent_config.json</code> (Agent).
+                </li>
                 <li><strong>Clean Deployment:</strong> Installers now generate clean JSON configuration files.</li>
             </ul>
         </div>

@@ -239,8 +239,20 @@ with app.app_context():
 "
     
     # Set ownership
+    # Set ownership and permissions (Hardened)
     sudo chown -R vm-agent:vm-agent "$INSTALL_DIR"
-    sudo chmod -R 755 "$INSTALL_DIR"
+    
+    # 750: User rwx, Group rx, Other -
+    # 640: User rw, Group r, Other -
+    # Exclude venv from file permission changes to avoid breaking binaries/libs
+    sudo find "$INSTALL_DIR" -type d -not -path "$INSTALL_DIR/venv*" -exec chmod 750 {} \;
+    sudo find "$INSTALL_DIR" -type f -not -path "$INSTALL_DIR/venv*" -exec chmod 640 {} \;
+    
+    # Ensure venv executables are correct (pip usually handles this, but just in case)
+    # sudo chmod -R 755 "$INSTALL_DIR/venv/bin" # Leave venv permissions as is from creation
+    
+    # Secrets (600)
+    sudo chmod 600 "$INSTALL_DIR/instance/config.json"
     
     # 7. Setup systemd service
     echo -e "${BLUE}[7/7] Configuring systemd service...${NC}"

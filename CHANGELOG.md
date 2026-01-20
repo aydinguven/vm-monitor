@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.44 (Hardening) (2026-01-20)
+- **Security**: Enforced strict `750/640` permissions on dashboard files.
+- **Security**: `setup_dashboard.sh` and `update_dashboard.sh` now exclude `venv` from strict permissions to preserve execution.
+- **Refactor**: `update_dashboard.sh` fully migrated to JSON config (dropped `.env` support).
+
 ## v1.43 (2026-01-20)
 - **Refactor**: Replaced Environment Variables with JSON configuration files (`instance/config.json` for Dashboard, `agent_config.json` for Agent).
 - **Agent**: Loading config from `agent_config.json` (local or `/etc/vm-agent/`).
