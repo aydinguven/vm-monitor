@@ -62,7 +62,7 @@ fi
 # 3. Update Code
 print_step "Updating code..."
 # Remove old code to ensure no stale files (but keep venv)
-find "$INSTALL_DIR" -maxdepth 1 -not -name "venv" -not -name "instance" -not -name "." -exec rm -rf {} +
+find "$INSTALL_DIR" -mindepth 1 -maxdepth 1 -not -name "venv" -not -name "instance" -exec rm -rf {} +
 # Copy new code
 cp -r "$SOURCE_ROOT/dashboard/"* "$INSTALL_DIR/"
 
