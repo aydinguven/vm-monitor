@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.eggs/
+venv/
+.venv/
+env/
+.env
+
+# Instance data (database and config files)
+instance/*.db
+instance/*.json
+!instance/.gitkeep
+
+# Build artifacts
+dist/
+build/
+*.tar
+*.tar.gz
+*.whl
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Development
+dev/
+*.bak

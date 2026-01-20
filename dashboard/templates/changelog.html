@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Changelog - VM Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #111;
+            --card-bg: #1a1a1a;
+            --text: #e5e5e5;
+            --text-dim: #a3a3a3;
+            --accent: #3b82f6;
+            --border: #333;
+            --success: #22c55e;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            text-align: center;
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .version-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .version-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .version-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .version-date {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge.current {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+
+        ul {
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        li {
+            margin-bottom: 8px;
+            color: var(--text-dim);
+        }
+
+        li strong {
+            color: var(--text);
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 50px;
+            color: var(--text-dim);
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            color: var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Changelog</h1>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.38 <span class="badge current">Latest</span></div>
+                <span class="version-date">Jan 20, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Feature Flags:</strong> Enable/disable features via instance/features.json or env vars.</li>
+                <li><strong>SMS Config File:</strong> Configure SMS via instance/sms_config.json instead of env vars.
+                </li>
+                <li><strong>Config APIs:</strong> New /api/features and /api/sms-config endpoints for managing settings.
+                </li>
+                <li><strong>Hot Reload:</strong> Config changes apply immediately without restarting the service.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.37</div>
+                <span class="version-date">Jan 20, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Turkey Timezone:</strong> SMS schedule now runs in Europe/Istanbul timezone.</li>
+                <li><strong>Windows CPU Fix:</strong> Fixed System Idle Process showing 173% CPU.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.36</div>
+                <span class="version-date">Jan 20, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Twilio SMS:</strong> Added Twilio as an SMS provider option for global coverage.</li>
+                <li><strong>Send SMS Button:</strong> Manual SMS trigger button in dashboard header.</li>
+                <li><strong>Schedule API:</strong> New /api/schedule endpoint to view upcoming SMS times.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.35</div>
+                <span class="version-date">Jan 19, 2026</span>
+            </div>
+            <ul>
+                <li><strong>SMS Alerts:</strong> Scheduled SMS notifications at 08:30, 12:00, 13:30, and 17:00 daily.
+                </li>
+                <li><strong>Pluggable Providers:</strong> Support for Textbelt and İleti Merkezi SMS providers.</li>
+                <li><strong>Alert Summary:</strong> SMS includes count of alerts (≥90%) and warnings (≥80%) for CPU,
+                    RAM, Disk.</li>
+                <li><strong>Environment Config:</strong> SMS_PROVIDER, SMS_RECIPIENT, and provider API keys via
+                    environment variables.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.34</div>
+                <span class="version-date">Jan 19, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Access Logging:</strong> All web requests now logged to instance/access.log with IP, path,
+                    status, and duration.</li>
+                <li><strong>Log Viewer:</strong> New /logs page to view recent access logs directly in the browser.</li>
+                <li><strong>Log Rotation:</strong> Access logs auto-rotate at 5MB with 3 backup files.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.33</div>
+                <span class="version-date">Jan 19, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Python 3.8-3.14 Support:</strong> Offline packages now include wheels for Python 3.8 through
+                    3.14.</li>
+                <li><strong>Improved Windows Installer:</strong> Auto-detects py, python, or python3 executables.</li>
+                <li><strong>Footer Fix:</strong> Fixed doubled "Source Available Soon" text.</li>
+                <li><strong>Offline Scripts:</strong> Separate build scripts for agent, dashboard (Linux), and dashboard
+                    (Windows).</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.32</div>
+                <span class="version-date">Jan 19, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Windows Agent Support:</strong> Agent now runs natively on Windows Server and Windows 10/11.
+                </li>
+                <li><strong>Windows Installer:</strong> New PowerShell installer script (install_agent.ps1) for easy
+                    Windows deployment.</li>
+                <li><strong>Failed Logon Detection:</strong> Windows Event Log (ID 4625) queried for failed RDP/login
+                    attempts.</li>
+                <li><strong>Windows Update Check:</strong> Pending Windows updates detected via COM object.</li>
+                <li><strong>Cloud Detection:</strong> WMI-based hypervisor detection for VMware, Hyper-V, Azure, AWS on
+                    Windows.</li>
+                <li><strong>Windows Commands:</strong> Remote commands adapt to Windows (PowerShell for services,
+                    shutdown /r for restart).</li>
+                <li><strong>Offline Packages:</strong> Build scripts now create proper Unix line endings and
+                    multi-Python-version wheels.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.31</div>
+                <span class="version-date">Jan 18, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Mobile UI Mode:</strong> New toggle button to switch between PC and Mobile layouts with
+                    auto-detection on small screens.</li>
+                <li><strong>Big Mobile Text:</strong> Significantly larger fonts, buttons (60px), and touch targets for
+                    easy mobile use.</li>
+                <li><strong>Native Filters:</strong> Mobile filter panel uses OS-native select pickers for a native app
+                    feel.</li>
+                <li><strong>Filter Bottom Sheet:</strong> Slide-up filter panel on mobile with Provider, OS, and Alerts
+                    Only options.</li>
+                <li><strong>Clear Filters Button:</strong> One-tap reset all filters on mobile.</li>
+                <li><strong>Full-Screen Modals:</strong> VM details open full-screen on mobile with larger close button.
+                </li>
+                <li><strong>2x2 Button Grid:</strong> Mobile header controls arranged in a convenient grid layout.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.30</div>
+                <span class="version-date">Jan 18, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Cloud Provider Detection:</strong> Agent now auto-detects AWS, GCP, Azure, Oracle Cloud,
+                    Proxmox, VMware, and more via metadata endpoints and DMI info.</li>
+                <li><strong>Filter Dropdowns:</strong> Filter VMs by cloud provider and OS using multi-select checkbox
+                    dropdowns.</li>
+                <li><strong>Alerts Only Filter:</strong> Quickly filter to show only VMs with active alerts.</li>
+                <li><strong>Collapsible Alerts:</strong> Active alerts section can be minimized with a button.</li>
+                <li><strong>Improved Charts:</strong> Cleaner lines for long time ranges (hidden data points, adaptive
+                    downsampling).</li>
+                <li><strong>Performance Boost:</strong> Lightweight API responses for VM list, pagination support for
+                    1000+ VMs.</li>
+                <li><strong>Fixed Time Ranges:</strong> Chart time range selector now shows correct time periods.</li>
+                <li><strong>Alert Labels:</strong> "⚠️ WARNING" (80-89%) and "🚨 ALARM" (90%+) badges replace generic
+                    alerts.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.29</div>
+                <span class="version-date">Jan 18, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Data-Preserving Migrations:</strong> New migrate_db.py script safely adds missing columns
+                    without data loss.</li>
+                <li><strong>Automatic Backups:</strong> Database is backed up before every deployment with automatic
+                    rotation (keeps last 5).</li>
+                <li><strong>Rollback Support:</strong> Failed migrations automatically restore from backup.</li>
+                <li><strong>Schema Validation:</strong> Post-migration data integrity checks.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.28.8</div>
+                <span class="version-date">Jan 18, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Database Migrations:</strong> Flask-Migrate integration preserves historical data across
+                    deployments.</li>
+                <li><strong>No More Data Loss:</strong> Deploy script now backs up DB and runs schema migrations instead
+                    of deleting.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.28.7</div>
+                <span class="version-date">Jan 17, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Sustained Alerts:</strong> CPU alerts now use 30s average (cpu_avg) instead of instant
+                    readings.</li>
+                <li><strong>Fixed Alert Bug:</strong> Removed duplicate hasAlerts() function that was blocking 80%
+                    threshold warnings.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.28.6</div>
+                <span class="version-date">Jan 17, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Rootless Podman:</strong> Agent now discovers containers running under non-root users (e.g.,
+                    opc).</li>
+                <li><strong>User Session Detection:</strong> Checks XDG_RUNTIME_DIR for each user to find active Podman
+                    instances.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.28.5</div>
+                <span class="version-date">Jan 17, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Enhanced Kubeconfig Discovery:</strong> Scans all user homes, root, and OCI-specific paths
+                    at runtime.</li>
+                <li><strong>Multi-Cluster Support:</strong> Tries multiple kubeconfigs to find accessible K8s clusters.
+                </li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.28.4</div>
+                <span class="version-date">Jan 17, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Install Script Rewrite:</strong> Better OS detection (Debian/RHEL), venv fallback, colored
+                    output.</li>
+                <li><strong>Service Verification:</strong> Post-install check confirms agent started successfully.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.28.3</div>
+                <span class="version-date">Jan 16, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Alert Thresholds:</strong> 80% = Warning ⚠️, 90% = Alarm 🚨 for CPU, RAM, and Disk.</li>
+                <li><strong>Active Alerts Section:</strong> Dashboard header shows VMs with critical resource usage.
+                </li>
+                <li><strong>Visual Indicators:</strong> VM cards show alert badges when thresholds exceeded.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.28.22</div>
+                <span class="version-date">Jan 16, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Deep Linking:</strong> VM details URLs (e.g., #HEPHAESTUS) for bookmarking and sharing.</li>
+                <li><strong>Container Buttons:</strong> Text labels added to Restart/Logs/Stop/Start buttons.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.28.21</div>
+                <span class="version-date">Jan 16, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Extended Time Ranges:</strong> Added 5m, 15m, 15d, and 30d options to history chart.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.28</div>
+                <span class="version-date">Jan 16, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Process Manager:</strong> Kill runaway processes directly from the dashboard.</li>
+                <li><strong>Interactive History:</strong> View historical data for 1 hour, 24 hours, or 7 days.</li>
+                <li><strong>Changelog:</strong> This page you're looking at!</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.27.1</div>
+                <span class="version-date">Jan 16, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Stability:</strong> Fixed dashboard loading issues and null timestamp handling.</li>
+                <li><strong>Deployment:</strong> Improved process cleanup during redeployment.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.27</div>
+                <span class="version-date">Jan 15, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Kubernetes:</strong> Enhanced pod discovery with CRI socket detection.</li>
+                <li><strong>Fallback:</strong> Filesystem-based pod scanning for hardened nodes.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.26</div>
+                <span class="version-date">Jan 15, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Package Audit:</strong> Searchable inventory of installed packages.</li>
+                <li><strong>Container Actions:</strong> Docker/Podman container management (Logs/Restart/Stop).</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.25</div>
+                <span class="version-date">Jan 14, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Stress Tests:</strong> CPU and RAM diagnostic tools for performance testing.</li>
+                <li><strong>Modal Improvements:</strong> Better scrolling and mobile responsiveness.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.24</div>
+                <span class="version-date">Jan 13, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Security Hardening:</strong> Command whitelisting and argument validation.</li>
+                <li><strong>API Key Auth:</strong> Protected endpoints require X-API-Key header.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.23</div>
+                <span class="version-date">Jan 12, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Export Data:</strong> JSON and CSV export of all VM metrics.</li>
+                <li><strong>Search/Filter:</strong> Quick hostname search in dashboard header.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.22</div>
+                <span class="version-date">Jan 11, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Auto-Update:</strong> Agents self-update from central server.</li>
+                <li><strong>Version Display:</strong> Agent version shown in VM details.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.21</div>
+                <span class="version-date">Jan 11, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Systemd Service:</strong> Agent runs as a proper system service.</li>
+                <li><strong>Auto-Restart:</strong> Service restarts automatically on failure.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.20</div>
+                <span class="version-date">Jan 10, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Theme Toggle:</strong> Dark/Light mode switching.</li>
+                <li><strong>Improved UI:</strong> New card-based design with progress bars.</li>
+                <li><strong>Refresh Button:</strong> Manual refresh with visual feedback.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.19</div>
+                <span class="version-date">Jan 9, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Container Discovery:</strong> Docker and Podman container listing.</li>
+                <li><strong>Pod Count:</strong> Kubernetes pod information in VM details.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.18</div>
+                <span class="version-date">Jan 8, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Network Stats:</strong> Bytes sent/received tracking.</li>
+                <li><strong>Open Ports:</strong> Listening port discovery with process names.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.17</div>
+                <span class="version-date">Jan 7, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Top Processes:</strong> CPU and RAM usage by process.</li>
+                <li><strong>SSH Failed Attempts:</strong> Security monitoring from auth logs.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.0 - v1.16</div>
+                <span class="version-date">Jan 2026</span>
+            </div>
+            <ul>
+                <li><strong>Genesis:</strong> Initial Python Agent and Flask Dashboard.</li>
+                <li><strong>Core Metrics:</strong> CPU, RAM, Disk, Swap, Network I/O tracking.</li>
+                <li><strong>OS Support:</strong> RHEL, Rocky, Oracle Linux, CentOS, Ubuntu.</li>
+            </ul>
+        </div>
+
+        <a href="/" class="back-link">← Back to Dashboard</a>
+    </div>
+</body>
+
+</html>

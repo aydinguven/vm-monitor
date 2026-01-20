@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM Monitor Dashboard</title>
+    <meta name="description" content="Real-time VM monitoring dashboard for CPU, RAM, and Disk usage">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ version }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* v1.20 - Theme Variables */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-card: #1a1a24;
+            --bg-hover: #252532;
+            --text-primary: #f0f0f0;
+            --text-secondary: #888;
+            --accent: #6366f1;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f5f5f7;
+            --bg-card: #ffffff;
+            --bg-hover: #e8e8ec;
+            --text-primary: #1a1a24;
+            --text-secondary: #666;
+        }
+
+        /* v1.31 - Mobile UI Mode - BIG TEXT & BUTTONS */
+        [data-ui="mobile"] {
+            font-size: 20px;
+        }
+
+        [data-ui="mobile"] .container {
+            padding: 15px;
+        }
+
+        [data-ui="mobile"] .dashboard-header {
+            flex-direction: column;
+            gap: 12px;
+            padding: 20px 0;
+        }
+
+        [data-ui="mobile"] .dashboard-header h1 {
+            font-size: 2.2rem;
+        }
+
+        [data-ui="mobile"] .dashboard-header .stats {
+            font-size: 1.2rem;
+        }
+
+        [data-ui="mobile"] .controls-bar {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        [data-ui="mobile"] .search-box {
+            width: 100%;
+            padding: 18px 20px;
+            font-size: 20px;
+            border-radius: 12px;
+        }
+
+        [data-ui="mobile"] .header-controls {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        [data-ui="mobile"] .header-controls .btn {
+            min-height: 60px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        [data-ui="mobile"] .filter-dropdown {
+            display: none;
+        }
+
+        [data-ui="mobile"] .mobile-filter-btn {
+            display: flex !important;
+        }
+
+        [data-ui="mobile"] .vm-grid {
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        [data-ui="mobile"] .vm-card {
+            padding: 22px;
+            border-radius: 16px;
+        }
+
+        [data-ui="mobile"] .vm-hostname {
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+
+        [data-ui="mobile"] .vm-card .metric-label {
+            font-size: 1.15rem;
+        }
+
+        [data-ui="mobile"] .vm-card .metric-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        [data-ui="mobile"] .vm-card .metric-detail {
+            font-size: 1rem;
+        }
+
+        [data-ui="mobile"] .metric {
+            padding: 12px 0;
+        }
+
+        [data-ui="mobile"] .progress-bar {
+            height: 14px;
+            border-radius: 7px;
+        }
+
+        [data-ui="mobile"] .alert-badge {
+            font-size: 1rem;
+            padding: 8px 14px;
+            border-radius: 8px;
+        }
+
+        [data-ui="mobile"] .modal-content {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 0;
+            margin: 0;
+            font-size: 1.2rem;
+            padding: 20px;
+        }
+
+        [data-ui="mobile"] .modal-close {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+        }
+
+        [data-ui="mobile"] .modal-grid {
+            grid-template-columns: 1fr;
+        }
+
+        [data-ui="mobile"] .chart-container {
+            height: 200px;
+        }
+
+        [data-ui="mobile"] .btn {
+            min-height: 54px;
+            font-size: 1.1rem;
+            padding: 14px 20px;
+        }
+
+        [data-ui="mobile"] .alerts-section {
+            padding: 18px;
+            border-radius: 14px;
+        }
+
+        [data-ui="mobile"] .alerts-section h3 {
+            font-size: 1.3rem;
+        }
+
+        /* Mobile Bottom Sheet - Hidden by default */
+        #mobile-filter-sheet {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: var(--bg-card);
+            border-radius: 16px 16px 0 0;
+            padding: 20px;
+            z-index: 200 !important;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(100%) !important;
+            transition: transform 0.3s ease;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        #mobile-filter-sheet.open {
+            transform: translateY(0) !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+
+        #mobile-filter-backdrop {
+            display: none !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 199 !important;
+        }
+
+        #mobile-filter-backdrop.open {
+            display: block !important;
+        }
+
+        .mobile-bottom-sheet h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+        }
+
+        .mobile-bottom-sheet .filter-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1rem;
+            gap: 10px;
+        }
+
+        .mobile-bottom-sheet input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .mobile-filter-btn {
+            display: none;
+            min-height: 44px;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* v1.20 - Header Controls */
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 15px;
+            color: var(--text-primary);
+            width: 200px;
+            font-size: 0.9em;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 15px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* v1.20 - Alert Styling */
+        .vm-card.alert {
+            border: 2px solid var(--danger);
+            animation: pulse-alert 2s infinite;
+        }
+
+        @keyframes pulse-alert {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.2);
+            }
+        }
+
+        .alert-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+
+        .alert-badge.warning {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .vm-card.offline {
+            opacity: 0.6;
+            filter: grayscale(0.3);
+        }
+
+        /* v1.20 - New Sections */
+        .section-title {
+            font-size: 0.9em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 20px 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-box .label {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .stat-box.warning .value {
+            color: var(--warning);
+        }
+
+        .stat-box.danger .value {
+            color: var(--danger);
+        }
+
+        /* v1.20 - Charts */
+        .chart-container {
+            height: 200px;
+            margin: 15px 0;
+        }
+
+        /* Extra styles for new features */
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-group label {
+            display: block;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .info-group div {
+            font-family: monospace;
+            color: #eee;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .badge.online {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        .badge.offline {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .badge.cloud {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .badge.os {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+        }
+
+        .badge.status-ok {
+            color: #4ade80;
+        }
+
+        .badge.status-err {
+            color: #f87171;
+        }
+
+        .table-scroll {
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow-x: hidden;
+            /* No horizontal scroll */
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            table-layout: fixed;
+            /* Fixed layout for consistent column widths */
+        }
+
+        .data-table td,
+        .data-table th {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 8px;
+            background: #1a1a24;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .data-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .mono {
+            font-family: monospace;
+            color: #aaa;
+        }
+
+        .debug-section {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-text {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.8em;
+            text-decoration: underline;
+            padding: 0;
+        }
+
+        .btn-text:hover {
+            color: #eee;
+        }
+
+        #raw-data {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.75em;
+            color: #4ade80;
+            overflow-x: auto;
+            margin-top: 10px;
+            max-height: 300px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <path d="M8 21h8M12 17v4" />
+                </svg>
+                <h1>VM Monitor</h1>
+            </div>
+            <div class="header-info">
+                <span id="vm-count">0 VMs</span>
+                <span class="separator">•</span>
+                <span id="last-update">Updated just now</span>
+                <button id="refresh-btn" class="btn-icon" title="Refresh now">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                        <path d="M21 3v5h-5" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- v1.20 - Controls Bar -->
+        <div class="controls-bar"
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="text" id="search-box" class="search-box" placeholder="🔍 Search VMs...">
+                <!-- v1.30 - Custom Dropdown Filters with Checkboxes -->
+                <div class="filter-dropdown" style="position: relative;">
+                    <button class="btn" onclick="toggleDropdown('provider-dropdown')" style="min-width: 120px;">
+                        Provider ▼
+                    </button>
+                    <div id="provider-dropdown" class="dropdown-menu"
+                        style="display: none; position: absolute; top: 100%; left: 0; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; min-width: 150px; z-index: 100; max-height: 200px; overflow-y: auto;">
+                    </div>
+                </div>
+                <div class="filter-dropdown" style="position: relative;">
+                    <button class="btn" onclick="toggleDropdown('os-dropdown')" style="min-width: 100px;">
+                        OS ▼
+                    </button>
+                    <div id="os-dropdown" class="dropdown-menu"
+                        style="display: none; position: absolute; top: 100%; left: 0; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; min-width: 150px; z-index: 100; max-height: 200px; overflow-y: auto;">
+                    </div>
+                </div>
+                <label style="display: flex; align-items: center; gap: 5px; font-size: 0.85em; cursor: pointer;">
+                    <input type="checkbox" id="filter-alerts" onchange="applyFilters()"> Alerts Only
+                </label>
+            </div>
+            <div class="header-controls">
+                <button class="btn mobile-filter-btn" onclick="openMobileFilters()">🔍 Filters</button>
+                <button class="btn" id="send-sms-btn" onclick="sendSMS()">📱 Send SMS</button>
+                <button class="btn" onclick="exportData('json')">📥 JSON</button>
+                <button class="btn" onclick="exportData('csv')">📥 CSV</button>
+                <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
+                <button class="btn" id="ui-mode-btn" onclick="toggleUIMode()">📱 Mobile</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading VMs...</p>
+        </div>
+
+        <div id="empty-state" class="empty-state hidden">
+            <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8M12 17v4" />
+                <path d="M7 10h.01M12 10h.01M17 10h.01" />
+            </svg>
+            <h2>No VMs Connected</h2>
+            <p>Install the agent on your VMs to start monitoring.</p>
+            <code>./install.sh --server http://your-server:5000 --key YOUR_API_KEY</code>
+        </div>
+
+        <!-- v1.28.3 - Alerts Summary Section (v1.30 - Collapsible) -->
+        <div id="alerts-section" class="alerts-section hidden"
+            style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;"
+                onclick="toggleAlertsSection()">
+                <h3 style="margin: 0; color: #ef4444;">⚠️ Active Alerts</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span id="alerts-count" class="badge" style="background: #ef4444; color: white;">0</span>
+                    <button id="alerts-toggle" class="btn" style="padding: 4px 10px; font-size: 0.75em;">▼
+                        Minimize</button>
+                </div>
+            </div>
+            <div id="alerts-list" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
+        </div>
+
+        <div id="vm-grid" class="vm-grid"></div>
+    </div>
+
+    <!-- VM Detail Modal -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- v1.31 - Mobile Native Filters (uses OS native pickers) -->
+    <div id="mobile-filter-backdrop" class="mobile-bottom-sheet-backdrop" onclick="closeMobileFilters()"></div>
+    <div id="mobile-filter-sheet" class="mobile-bottom-sheet">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; font-size: 1.4rem;">Filters</h3>
+            <button class="btn" onclick="closeMobileFilters()"
+                style="padding: 12px 24px; font-size: 1.1rem;">Done</button>
+        </div>
+        <div id="mobile-filter-content">
+            <div style="margin-bottom: 24px;">
+                <label
+                    style="display: block; font-size: 1.1rem; margin-bottom: 10px; color: var(--text-secondary);">Provider</label>
+                <select id="mobile-provider-select"
+                    style="width: 100%; padding: 16px; font-size: 1.2rem; border-radius: 12px; background: var(--bg-primary); color: var(--text-primary); border: 2px solid rgba(255,255,255,0.2);"
+                    onchange="applyMobileFilters()">
+                    <option value="">All Providers</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 24px;">
+                <label
+                    style="display: block; font-size: 1.1rem; margin-bottom: 10px; color: var(--text-secondary);">Operating
+                    System</label>
+                <select id="mobile-os-select"
+                    style="width: 100%; padding: 16px; font-size: 1.2rem; border-radius: 12px; background: var(--bg-primary); color: var(--text-primary); border: 2px solid rgba(255,255,255,0.2);"
+                    onchange="applyMobileFilters()">
+                    <option value="">All OS</option>
+                </select>
+            </div>
+            <div
+                style="display: flex; align-items: center; gap: 12px; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.1);">
+                <input type="checkbox" id="mobile-filter-alerts" style="width: 28px; height: 28px;"
+                    onchange="applyMobileFilters()">
+                <label for="mobile-filter-alerts" style="font-size: 1.2rem;">Show Alerts Only</label>
+            </div>
+            <button class="btn" onclick="clearMobileFilters()"
+                style="width: 100%; margin-top: 20px; padding: 16px; font-size: 1.1rem; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);">Clear
+                All Filters</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const REFRESH_INTERVAL = 30000; // 30 seconds
+        let refreshTimer = null;
+
+        // DOM Elements
+        const vmGrid = document.getElementById('vm-grid');
+        const loading = document.getElementById('loading');
+        const emptyState = document.getElementById('empty-state');
+        const vmCount = document.getElementById('vm-count');
+        const lastUpdate = document.getElementById('last-update');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const modal = document.getElementById('modal');
+        const modalBody = document.getElementById('modal-body');
+        const modalClose = document.getElementById('modal-close');
+
+        // v1.30 - Filter state
+        let allVMs = []; // Store all VMs for filtering
+        let alertsCollapsed = false; // Track alerts section state
+
+        // v1.31 - UI Mode state
+        let uiMode = localStorage.getItem('uiMode') || 'auto';
+
+        // Auto-detect and apply UI mode on load
+        function initUIMode() {
+            if (uiMode === 'auto') {
+                // Auto-detect based on screen width
+                uiMode = window.innerWidth < 768 ? 'mobile' : 'pc';
+            }
+            setUIMode(uiMode);
+        }
+
+        function setUIMode(mode) {
+            document.documentElement.dataset.ui = mode;
+            const btn = document.getElementById('ui-mode-btn');
+            if (btn) {
+                btn.textContent = mode === 'mobile' ? '🖥️ Desktop' : '📱 Mobile';
+            }
+        }
+
+        function toggleUIMode() {
+            const current = document.documentElement.dataset.ui;
+            const newMode = current === 'mobile' ? 'pc' : 'mobile';
+            uiMode = newMode;
+            localStorage.setItem('uiMode', newMode);
+            setUIMode(newMode);
+        }
+
+        // Mobile filter functions
+        function openMobileFilters() {
+            document.getElementById('mobile-filter-backdrop').classList.add('open');
+            document.getElementById('mobile-filter-sheet').classList.add('open');
+            populateMobileFilters();
+        }
+
+        function closeMobileFilters() {
+            document.getElementById('mobile-filter-backdrop').classList.remove('open');
+            document.getElementById('mobile-filter-sheet').classList.remove('open');
+        }
+
+        function populateMobileFilters() {
+            // Reuse normalizeProvider and extractOSFamily from desktop filters
+            function normalizeProvider(p) {
+                if (!p) return 'Unknown';
+                const lower = p.toLowerCase();
+                if (lower.includes('proxmox') || lower === 'qemu/kvm' || lower === 'kvm') return 'Proxmox';
+                return p;
+            }
+
+            function extractOSFamily(osName) {
+                if (!osName) return 'Unknown';
+                const lower = osName.toLowerCase();
+                if (lower.startsWith('red hat')) return 'Red Hat';
+                if (lower.startsWith('oracle linux')) return 'Oracle Linux';
+                if (lower.startsWith('rocky linux')) return 'Rocky Linux';
+                if (lower.startsWith('alma linux')) return 'AlmaLinux';
+                return osName.split(' ')[0] || 'Unknown';
+            }
+
+            const providers = [...new Set(allVMs.map(vm => normalizeProvider(vm.cloud_provider)).filter(p => p))];
+            const osNames = [...new Set(allVMs.map(vm => extractOSFamily(vm.os_name)).filter(o => o))];
+
+            // Get current desktop filter selections
+            const selectedProviders = getSelectedFilters('provider-dropdown');
+            const selectedOSes = getSelectedFilters('os-dropdown');
+
+            // Build provider select options
+            const providerSelect = document.getElementById('mobile-provider-select');
+            const currentProvider = providerSelect.value;
+            providerSelect.innerHTML = '<option value="">All Providers</option>' +
+                providers.sort().map(p => `<option value="${p.toLowerCase()}">${p}</option>`).join('');
+            providerSelect.value = selectedProviders[0] || currentProvider || '';
+
+            // Build OS select options
+            const osSelect = document.getElementById('mobile-os-select');
+            const currentOS = osSelect.value;
+            osSelect.innerHTML = '<option value="">All OS</option>' +
+                osNames.sort().map(os => `<option value="${os.toLowerCase()}">${os}</option>`).join('');
+            osSelect.value = selectedOSes[0] || currentOS || '';
+
+            // Sync alerts checkbox
+            document.getElementById('mobile-filter-alerts').checked = document.getElementById('filter-alerts').checked;
+        }
+
+        function applyMobileFilters() {
+            // Get mobile filter selections (native selects)
+            const selectedProvider = document.getElementById('mobile-provider-select').value;
+            const selectedOS = document.getElementById('mobile-os-select').value;
+            const alertsOnly = document.getElementById('mobile-filter-alerts').checked;
+
+            // Sync to desktop filters
+            const providerDropdown = document.getElementById('provider-dropdown');
+            const osDropdown = document.getElementById('os-dropdown');
+
+            // Clear and set desktop dropdowns to match mobile
+            providerDropdown.querySelectorAll('input').forEach(cb => {
+                cb.checked = selectedProvider && cb.value === selectedProvider;
+            });
+            osDropdown.querySelectorAll('input').forEach(cb => {
+                cb.checked = selectedOS && cb.value === selectedOS;
+            });
+            document.getElementById('filter-alerts').checked = alertsOnly;
+
+            // Apply filters
+            applyFilters();
+        }
+
+        function clearMobileFilters() {
+            document.getElementById('mobile-provider-select').value = '';
+            document.getElementById('mobile-os-select').value = '';
+            document.getElementById('mobile-filter-alerts').checked = false;
+            applyMobileFilters();
+        }
+
+        // Initialize UI mode on page load
+        initUIMode();
+
+        // Utility functions
+        function formatBytes(gb) {
+            if (gb >= 1000) return `${(gb / 1000).toFixed(1)} TB`;
+            return `${gb.toFixed(1)} GB`;
+        }
+
+        function formatTime(seconds) {
+            if (seconds < 60) return `${seconds}s ago`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+            return `${Math.floor(seconds / 86400)}d ago`;
+        }
+
+        // v1.28.3 - Enhanced threshold status
+        function getStatusClass(percent) {
+            if (percent >= 90) return 'critical';  // ALARM
+            if (percent >= 80) return 'warning';   // WARNING
+            return 'normal';
+        }
+
+        // v1.28.7 - Check if VM has sustained alerts (uses cpu_avg for 30s average)
+        function hasAlerts(vm) {
+            if (!vm.online) return false;
+            const maxDisk = Object.values(vm.disk_usage || {}).reduce((max, d) => Math.max(max, d.percent), 0);
+            // Use cpu_avg (30s sustained) for CPU, ram_percent for RAM
+            return vm.cpu_avg >= 80 || vm.ram_percent >= 80 || maxDisk >= 80;
+        }
+
+        // v1.28.7 - Get alert level based on sustained values
+        function getAlertLevel(vm) {
+            if (!vm.online) return 'none';
+            const maxDisk = Object.values(vm.disk_usage || {}).reduce((max, d) => Math.max(max, d.percent), 0);
+            // 90%+ sustained = ALARM
+            if (vm.cpu_avg >= 90 || vm.ram_percent >= 90 || maxDisk >= 90) return 'alarm';
+            // 80%+ sustained = WARNING
+            if (vm.cpu_avg >= 80 || vm.ram_percent >= 80 || maxDisk >= 80) return 'warning';
+            return 'none';
+        }
+
+        // v1.28.7 - Get alert details for a VM (using sustained values)
+        function getAlertDetails(vm) {
+            const alerts = [];
+            const maxDisk = Object.values(vm.disk_usage || {}).reduce((max, d) => Math.max(max, d.percent), 0);
+            // Show sustained CPU average for alerts
+            if (vm.cpu_avg >= 90) alerts.push(`CPU ${vm.cpu_avg.toFixed(0)}% avg 🚨`);
+            else if (vm.cpu_avg >= 80) alerts.push(`CPU ${vm.cpu_avg.toFixed(0)}% avg ⚠️`);
+            if (vm.ram_percent >= 90) alerts.push(`RAM ${vm.ram_percent.toFixed(0)}% 🚨`);
+            else if (vm.ram_percent >= 80) alerts.push(`RAM ${vm.ram_percent.toFixed(0)}% ⚠️`);
+            if (maxDisk >= 90) alerts.push(`Disk ${maxDisk.toFixed(0)}% 🚨`);
+            else if (maxDisk >= 80) alerts.push(`Disk ${maxDisk.toFixed(0)}% ⚠️`);
+            return alerts;
+        }
+
+        function getCloudIcon(provider) {
+            const icons = {
+                'aws': '☁️',
+                'gcp': '🌐',
+                'oci': '🔶',
+                'proxmox': '📦',
+                'azure': '🔷',
+                'on-prem': '🏢',
+                'unknown': '💻'
+            };
+            return icons[provider] || icons['unknown'];
+        }
+
+        // v1.20 - Format bytes for network I/O
+        function formatNetworkBytes(bytes) {
+            if (bytes >= 1e12) return `${(bytes / 1e12).toFixed(1)} TB`;
+            if (bytes >= 1e9) return `${(bytes / 1e9).toFixed(1)} GB`;
+            if (bytes >= 1e6) return `${(bytes / 1e6).toFixed(1)} MB`;
+            if (bytes >= 1e3) return `${(bytes / 1e3).toFixed(1)} KB`;
+            return `${bytes} B`;
+        }
+
+        // v1.20 - Theme Toggle
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const newTheme = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+
+        // v1.20 - Export Data
+        function exportData(format) {
+            window.open(`/api/export?format=${format}`, '_blank');
+        }
+
+        // v1.20 - Search/Filter
+        function filterVMs(searchTerm) {
+            const cards = document.querySelectorAll('.vm-card');
+            const term = searchTerm.toLowerCase();
+            cards.forEach(card => {
+                const hostname = card.dataset.hostname || '';
+                const provider = card.dataset.provider || '';
+                const visible = hostname.includes(term) || provider.includes(term);
+                card.style.display = visible ? '' : 'none';
+            });
+        }
+
+        // v1.20 - Render historical chart
+        function renderChart(containerId, history) {
+            renderChartWithInstance(containerId, history);
+        }
+
+        // v1.29.1 - Returns chart instance for cleanup
+        // v1.30.1 - Improved chart rendering with hidden points for cleaner look
+        function renderChartWithInstance(containerId, history) {
+            if (!history || history.length < 2) return null;
+
+            const ctx = document.getElementById(containerId);
+            if (!ctx) return null;
+
+            // Determine if long range (hide points for cleaner look)
+            const firstTime = new Date(history[0].timestamp);
+            const lastTime = new Date(history[history.length - 1].timestamp);
+            const rangeHours = (lastTime - firstTime) / (1000 * 60 * 60);
+            const isLongRange = rangeHours > 2;
+
+            // Format labels based on range
+            const labels = history.map(h => {
+                const d = new Date(h.timestamp);
+                if (rangeHours > 24) {
+                    // Multi-day: show date + time
+                    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+                return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            });
+
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'CPU %',
+                            data: history.map(h => h.cpu_avg),
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: isLongRange ? 0 : 2,
+                            pointHoverRadius: 4,
+                            borderWidth: isLongRange ? 1.5 : 2
+                        },
+                        {
+                            label: 'RAM %',
+                            data: history.map(h => h.ram_percent),
+                            borderColor: '#22c55e',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: isLongRange ? 0 : 2,
+                            pointHoverRadius: 4,
+                            borderWidth: isLongRange ? 1.5 : 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#888' } }
+                    },
+                    scales: {
+                        y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
+                        x: {
+                            display: !isLongRange, // Hide x-axis for long ranges
+                            grid: { display: false },
+                            ticks: { color: '#888', maxTicksLimit: 8 }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        function renderContainers(containers, hostname) {
+            if (!containers || containers.length === 0) {
+                return `
+                    <div class="info-header">
+                        <h3>Containers</h3>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="data-table">
+                            <tbody><tr><td style="text-align: center; color: #888; padding: 20px;">No containers running</td></tr></tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            const rows = containers.map(c => {
+                const status = (c.status || 'Unknown').toLowerCase();
+                const statusClass = status.includes('up') || status.includes('running') ? 'ok' : 'err';
+                const ports = c.ports || '-';
+                const runtime = c.runtime || 'docker';
+
+                // Action Buttons
+                const btnStyle = 'padding: 2px 6px; font-size: 0.8rem; margin-right: 4px; cursor: pointer;';
+                const actions = `
+                    <button class="btn" style="${btnStyle}" onclick="runContainerAction('${hostname}', '${runtime}', 'restart', '${c.name}')" title="Restart">🔄 Restart</button>
+                    <button class="btn" style="${btnStyle}" onclick="runContainerAction('${hostname}', '${runtime}', 'logs', '${c.name}')" title="Logs">📄 Logs</button>
+                    ${status.includes('up')
+                        ? `<button class="btn" style="${btnStyle} color: red;" onclick="runContainerAction('${hostname}', '${runtime}', 'stop', '${c.name}')" title="Stop">⏹️ Stop</button>`
+                        : `<button class="btn" style="${btnStyle} color: green;" onclick="runContainerAction('${hostname}', '${runtime}', 'start', '${c.name}')" title="Start">▶️ Start</button>`
+                    }
+                `;
+
+                return `
+                    <tr>
+                        <td>${c.name || 'N/A'}</td>
+                        <td><span class="mono">${c.image || 'N/A'}</span></td>
+                        <td><span class="badge status-${statusClass}">${c.status || 'Unknown'}</span></td>
+                        <td class="mono">${ports}</td>
+                        <td class="mono">${runtime}</td>
+                        <td>${actions}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <div class="info-header">
+                    <h3>Containers (${containers.length})</h3>
+                </div>
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead><tr><th>Name</th><th>Image</th><th>Status</th><th>Ports</th><th>Runtime</th><th>Actions</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderPods(pods) {
+            if (!pods || pods.length === 0) {
+                return `
+                    <div class="info-header">
+                        <h3>Kubernetes Pods</h3>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="data-table">
+                            <tbody><tr><td style="text-align: center; color: #888; padding: 20px;">No pods discovered</td></tr></tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            const rows = pods.map(p => {
+                const status = (p.status || 'Unknown').toLowerCase();
+                const statusClass = status === 'running' || status === 'succeeded' ? 'ok' : 'err';
+                const restarts = p.restarts || '0';
+                const restartsClass = parseInt(restarts) > 5 ? 'status-err' : '';
+                return `
+                    <tr>
+                        <td>${p.namespace}</td>
+                        <td>${p.name}</td>
+                        <td><span class="badge status-${statusClass}">${p.status}</span></td>
+                        <td class="${restartsClass}">${restarts}</td>
+                        <td class="mono">${p.node || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <div class="info-header">
+                    <h3>Kubernetes Pods (${pods.length})</h3>
+                </div>
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead><tr><th>Namespace</th><th>Name</th><th>Status</th><th>Restarts</th><th>Node</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Fetch and render VMs
+        async function fetchVMs() {
+            try {
+                const response = await fetch('/api/vms');
+                const vms = await response.json();
+                allVMs = vms; // v1.30 - Store for filtering
+                populateFilters(vms); // v1.30 - Update filter options
+                applyFilters(); // v1.30 - Render with current filters
+                updateHeader(vms);
+            } catch (error) {
+                console.error('Failed to fetch VMs:', error);
+                loading.classList.add('hidden');
+                vmGrid.innerHTML = `
+                    <div style="text-align:center; padding: 40px; color: var(--danger);">
+                        <h3>⚠️ Connection Failed</h3>
+                        <p>${error.message}</p>
+                        <button onclick="fetchVMs()" class="btn">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        // v1.30 - Populate filter dropdowns with checkboxes
+        function populateFilters(vms) {
+            const providerDropdown = document.getElementById('provider-dropdown');
+            const osDropdown = document.getElementById('os-dropdown');
+
+            // Normalize provider names (merge Proxmox variants)
+            function normalizeProvider(p) {
+                if (!p) return 'Unknown';
+                const lower = p.toLowerCase();
+                if (lower.includes('proxmox') || lower === 'qemu/kvm' || lower === 'kvm') return 'Proxmox';
+                return p;
+            }
+
+            // Extract OS family (handle "Red Hat" specially)
+            function extractOSFamily(osName) {
+                if (!osName) return 'Unknown';
+                const lower = osName.toLowerCase();
+                if (lower.startsWith('red hat')) return 'Red Hat';
+                if (lower.startsWith('oracle linux')) return 'Oracle Linux';
+                if (lower.startsWith('rocky linux')) return 'Rocky Linux';
+                if (lower.startsWith('alma linux')) return 'AlmaLinux';
+                return osName.split(' ')[0] || 'Unknown';
+            }
+
+            // Get unique providers and OS names
+            const providers = [...new Set(vms.map(vm => normalizeProvider(vm.cloud_provider)).filter(p => p))];
+            const osNames = [...new Set(vms.map(vm => extractOSFamily(vm.os_name)).filter(o => o))];
+
+            // Preserve current selections
+            const currentProviders = getSelectedFilters('provider-dropdown');
+            const currentOSes = getSelectedFilters('os-dropdown');
+
+            // Build provider checkboxes
+            providerDropdown.innerHTML = providers.sort().map(p => {
+                const checked = currentProviders.includes(p.toLowerCase()) ? 'checked' : '';
+                return `<label style="display: block; padding: 4px 0; cursor: pointer; white-space: nowrap;">
+                    <input type="checkbox" value="${p.toLowerCase()}" ${checked} onchange="applyFilters()"> ${p}
+                </label>`;
+            }).join('');
+
+            // Build OS checkboxes
+            osDropdown.innerHTML = osNames.sort().map(os => {
+                const checked = currentOSes.includes(os.toLowerCase()) ? 'checked' : '';
+                return `<label style="display: block; padding: 4px 0; cursor: pointer; white-space: nowrap;">
+                    <input type="checkbox" value="${os.toLowerCase()}" ${checked} onchange="applyFilters()"> ${os}
+                </label>`;
+            }).join('');
+        }
+
+        // Get selected values from checkbox dropdown
+        function getSelectedFilters(dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
+            const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        // Toggle dropdown visibility
+        function toggleDropdown(dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
+            const isVisible = dropdown.style.display !== 'none';
+
+            // Close all dropdowns first
+            document.querySelectorAll('.dropdown-menu').forEach(d => d.style.display = 'none');
+
+            // Toggle this one
+            dropdown.style.display = isVisible ? 'none' : 'block';
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-dropdown')) {
+                document.querySelectorAll('.dropdown-menu').forEach(d => d.style.display = 'none');
+            }
+        });
+
+        // v1.30 - Apply all filters and re-render
+        function applyFilters() {
+            const selectedProviders = getSelectedFilters('provider-dropdown');
+            const selectedOSes = getSelectedFilters('os-dropdown');
+            const alertsOnly = document.getElementById('filter-alerts').checked;
+            const searchTerm = document.getElementById('search-box').value.toLowerCase();
+
+            // Normalize provider for filtering (same as populateFilters)
+            function normalizeProvider(p) {
+                if (!p) return 'unknown';
+                const lower = p.toLowerCase();
+                if (lower.includes('proxmox') || lower === 'qemu/kvm' || lower === 'kvm') return 'proxmox';
+                return lower;
+            }
+
+            // Extract OS family for filtering
+            function extractOSFamily(osName) {
+                if (!osName) return 'unknown';
+                const lower = osName.toLowerCase();
+                if (lower.startsWith('red hat')) return 'red hat';
+                if (lower.startsWith('oracle linux')) return 'oracle linux';
+                if (lower.startsWith('rocky linux')) return 'rocky linux';
+                if (lower.startsWith('alma linux')) return 'almalinux';
+                return osName.split(' ')[0].toLowerCase() || 'unknown';
+            }
+
+            let filtered = allVMs.filter(vm => {
+                // Provider filter (if any selected)
+                if (selectedProviders.length > 0) {
+                    const vmProvider = normalizeProvider(vm.cloud_provider);
+                    if (!selectedProviders.includes(vmProvider)) {
+                        return false;
+                    }
+                }
+                // OS filter (if any selected)
+                if (selectedOSes.length > 0) {
+                    const vmOS = extractOSFamily(vm.os_name);
+                    if (!selectedOSes.includes(vmOS)) {
+                        return false;
+                    }
+                }
+                // Alerts only filter
+                if (alertsOnly && !hasAlerts(vm)) {
+                    return false;
+                }
+                // Search term
+                if (searchTerm && !vm.hostname.toLowerCase().includes(searchTerm)) {
+                    return false;
+                }
+                return true;
+            });
+
+            renderVMs(filtered);
+        }
+
+        // v1.30 - Toggle alerts section collapse
+        function toggleAlertsSection() {
+            const alertsList = document.getElementById('alerts-list');
+            const alertsToggle = document.getElementById('alerts-toggle');
+            alertsCollapsed = !alertsCollapsed;
+
+            if (alertsCollapsed) {
+                alertsList.style.display = 'none';
+                alertsToggle.textContent = '▶ Expand';
+            } else {
+                alertsList.style.display = 'flex';
+                alertsToggle.textContent = '▼ Minimize';
+            }
+        }
+
+        function renderVMs(vms) {
+            loading.classList.add('hidden');
+
+            if (vms.length === 0) {
+                emptyState.classList.remove('hidden');
+                vmGrid.innerHTML = '';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            vmGrid.innerHTML = vms.map(vm => {
+                const alertClass = hasAlerts(vm) ? 'alert' : '';
+                const offlineClass = vm.online ? '' : 'offline';
+                return `
+                <div class="vm-card ${offlineClass} ${alertClass}" data-hostname="${vm.hostname.toLowerCase()}" data-provider="${(vm.cloud_provider || '').toLowerCase()}">
+                    ${hasAlerts(vm) ? `<span class="alert-badge ${getAlertLevel(vm) === 'warning' ? 'warning' : ''}">${getAlertLevel(vm) === 'alarm' ? '🚨 ALARM' : '⚠️ WARNING'}</span>` : ''}
+                    <div class="vm-header">
+                        <div class="vm-status ${vm.online ? 'online' : 'offline'}"></div>
+                        <h3 class="vm-hostname">${vm.hostname}</h3>
+                        <span class="vm-cloud" title="${vm.cloud_provider}">${getCloudIcon(vm.cloud_provider)}</span>
+                    </div>
+                    
+                    <div class="vm-metrics">
+                        <div class="metric">
+                            <div class="metric-header">
+                                <span class="metric-label">CPU</span>
+                                <span class="metric-value">${vm.cpu_instant.toFixed(0)}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill ${getStatusClass(vm.cpu_instant)}" style="width: ${Math.min(vm.cpu_instant, 100)}%"></div>
+                            </div>
+                            <span class="metric-detail">Avg: ${vm.cpu_avg.toFixed(0)}% • ${vm.cpu_count} cores</span>
+                        </div>
+                        
+                        <div class="metric">
+                            <div class="metric-header">
+                                <span class="metric-label">RAM</span>
+                                <span class="metric-value">${vm.ram_percent.toFixed(0)}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill ${getStatusClass(vm.ram_percent)}" style="width: ${Math.min(vm.ram_percent, 100)}%"></div>
+                            </div>
+                            <span class="metric-detail">${formatBytes(vm.ram_used_gb)} / ${formatBytes(vm.ram_total_gb)}</span>
+                        </div>
+                        
+                        ${renderDiskMetrics(vm.disk_usage)}
+                    </div>
+                    
+                    <div class="vm-footer">
+                        <span class="vm-lastseen">${vm.online ? formatTime(vm.seconds_ago) : 'Offline'}${vm.agent_version ? ` • v${vm.agent_version}` : ''}</span>
+                        <button class="btn-details" onclick="showDetails('${vm.hostname}')">Details</button>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function renderDiskMetrics(diskUsage) {
+            if (!diskUsage || Object.keys(diskUsage).length === 0) {
+                return '<div class="metric"><span class="metric-label">No disk data</span></div>';
+            }
+
+            // Show primary disk (/) or first disk
+            const primaryMount = diskUsage['/'] ? '/' : Object.keys(diskUsage)[0];
+            const disk = diskUsage[primaryMount];
+            const otherCount = Object.keys(diskUsage).length - 1;
+
+            return `
+                <div class="metric">
+                    <div class="metric-header">
+                        <span class="metric-label">Disk ${primaryMount}</span>
+                        <span class="metric-value">${disk.percent.toFixed(0)}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${getStatusClass(disk.percent)}" style="width: ${Math.min(disk.percent, 100)}%"></div>
+                    </div>
+                    <span class="metric-detail">${formatBytes(disk.used_gb)} / ${formatBytes(disk.total_gb)}${otherCount > 0 ? ` • +${otherCount} more` : ''}</span>
+                </div>
+            `;
+        }
+
+        function updateHeader(vms) {
+            const online = vms.filter(vm => vm.online).length;
+            vmCount.textContent = `${online}/${vms.length} VMs online`;
+            lastUpdate.textContent = 'Updated just now';
+
+            // v1.28.3 - Update alerts section
+            renderAlerts(vms);
+        }
+
+        // v1.28.3 - Render alerts summary section
+        function renderAlerts(vms) {
+            const alertsSection = document.getElementById('alerts-section');
+            const alertsList = document.getElementById('alerts-list');
+            const alertsCount = document.getElementById('alerts-count');
+
+            const vmsWithAlerts = vms.filter(vm => hasAlerts(vm));
+
+            if (vmsWithAlerts.length === 0) {
+                alertsSection.classList.add('hidden');
+                return;
+            }
+
+            alertsSection.classList.remove('hidden');
+            alertsCount.textContent = vmsWithAlerts.length;
+
+            alertsList.innerHTML = vmsWithAlerts.map(vm => {
+                const level = getAlertLevel(vm);
+                const details = getAlertDetails(vm).join(' | ');
+                const bgColor = level === 'alarm' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)';
+                const borderColor = level === 'alarm' ? '#ef4444' : '#f59e0b';
+
+                return `
+                    <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 6px; padding: 8px 12px; cursor: pointer;" onclick="showDetails('${vm.hostname}')">
+                        <strong>${vm.hostname}</strong><br>
+                        <span style="font-size: 0.85em;">${details}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function showDetails(hostname) {
+            // Update URL hash for deep linking (v1.28.22)
+            window.location.hash = hostname;
+
+            modal.classList.remove('hidden');
+            modalBody.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                const response = await fetch(`/api/vms/${hostname}`);
+                if (!response.ok) throw new Error('VM not found');
+                const vm = await response.json();
+
+                // Process Disk Data
+                const diskUsage = vm.disk_usage || {};
+                const diskRows = Object.entries(diskUsage).map(([mount, info]) => `
+                    <tr>
+                        <td>${mount}</td>
+                        <td>${formatBytes(info.used_gb)} / ${formatBytes(info.total_gb)}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill ${getStatusClass(info.percent)}" style="width: ${Math.min(info.percent, 100)}%"></div>
+                            </div>
+                        </td>
+                        <td>${info.percent.toFixed(1)}%</td>
+                    </tr>
+                `).join('') || '<tr><td colspan="4">No disk data</td></tr>';
+
+                // Find max disk usage
+                const maxDisk = Object.values(diskUsage).reduce((max, d) => Math.max(max, d.percent), 0);
+                const maxDiskMount = Object.entries(diskUsage).find(([k, v]) => v.percent === maxDisk)?.[0] || 'N/A';
+
+                modalBody.innerHTML = `
+                    <h2>${vm.hostname}</h2>
+                    <div class="modal-subtitle">
+                        <span class="badge ${vm.online ? 'online' : 'offline'}">${vm.online ? 'Online' : 'Offline'}</span>
+                        <span class="badge cloud">${getCloudIcon(vm.cloud_provider)} ${vm.cloud_provider}</span>
+                        <span class="badge os">${vm.os_name || 'Unknown OS'}</span>
+                        ${vm.agent_version ? `<span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #4ade80;">Agent v${vm.agent_version}</span>` : ''}
+                        ${vm.pending_updates > 0 ? `<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">${vm.pending_updates} Updates Pending</span>` : ''}
+                    </div>
+                    
+                    <div class="modal-grid">
+                        <div class="info-group">
+                            <label>Network</label>
+                            <div>Internal: ${vm.ip_internal || 'N/A'}</div>
+                            <div>External: ${vm.ip_external || 'N/A'}</div>
+                            <div style="margin-top:5px; font-size:0.9em; color:#888;">
+                                <span title="Sent">⬆️ ${formatNetworkBytes(vm.network_bytes_sent || 0)}</span> &nbsp;
+                                <span title="Received">⬇️ ${formatNetworkBytes(vm.network_bytes_recv || 0)}</span>
+                            </div>
+                        </div>
+                        <div class="info-group">
+                            <label>System</label>
+                            <div>Kernel: ${vm.kernel || 'N/A'}</div>
+                            <div>Arch: ${vm.arch || 'N/A'}</div>
+                            <div>Uptime: ${vm.uptime_seconds ? formatTime(vm.uptime_seconds).replace(' ago', '') : 'N/A'}</div>
+                            <div>First Seen: ${new Date(vm.first_seen).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+
+                    <!-- Security Section -->
+                    <div class="info-group" style="margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px;">
+                        <label>Security Check</label>
+                        <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">
+                            <div>SSH Failed: <span style="color:${(vm.ssh_failed_attempts || 0) > 0 ? '#ef4444' : '#22c55e'}; font-weight:bold;">${vm.ssh_failed_attempts || 0}</span></div>
+                            <div style="flex:1;">Open Ports: ${(vm.open_ports || []).map(p =>
+                    `<span class="badge" style="background:rgba(255,255,255,0.1); margin-right:4px; font-size:0.75em;">${p.port} (${p.process})</span>`
+                ).join('') || '<span style="color:#888">None exposed</span>'}</div>
+                        </div>
+                    </div>
+                    
+                    <h3>Current Metrics</h3>
+                    <div class="modal-metrics">
+                        <div class="modal-metric">
+                            <span class="modal-metric-value">${vm.cpu_instant.toFixed(1)}%</span>
+                            <span class="modal-metric-label">CPU Instant</span>
+                        </div>
+                        <div class="modal-metric">
+                            <span class="modal-metric-value">${vm.cpu_avg.toFixed(1)}%</span>
+                            <span class="modal-metric-label">CPU Average</span>
+                        </div>
+                        <div class="modal-metric">
+                            <span class="modal-metric-value">${vm.ram_percent.toFixed(1)}%</span>
+                            <span class="modal-metric-label">RAM Used</span>
+                        </div>
+                        <div class="modal-metric">
+                            <span class="modal-metric-value">${(vm.swap_percent || 0).toFixed(1)}%</span>
+                            <span class="modal-metric-label">Swap Used</span>
+                        </div>
+                        <div class="modal-metric">
+                            <span class="modal-metric-value">${maxDisk.toFixed(0)}%</span>
+                            <span class="modal-metric-label">Max Disk (${maxDiskMount})</span>
+                        </div>
+                        <div class="modal-metric">
+                            <span class="modal-metric-value" style="font-size: 1.2em; line-height: 1.5;">${vm.uptime_seconds ? formatTime(vm.uptime_seconds).replace(' ago', '') : 'N/A'}</span>
+                            <span class="modal-metric-label">Uptime</span>
+                        </div>
+                    </div>
+
+                    <!-- Historical Chart -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h3>History</h3>
+                        <select onchange="updateChartTimeRange('${vm.hostname}', this.value)" style="background:#222; color:#fff; border:1px solid #444; padding:4px; border-radius:4px;">
+                            <option value="5m">Last 5 Minutes</option>
+                            <option value="15m">Last 15 Minutes</option>
+                            <option value="1h" selected>Last 1 Hour</option>
+                            <option value="24h">Last 24 Hours</option>
+                            <option value="7d">Last 7 Days</option>
+                            <option value="15d">Last 15 Days</option>
+                            <option value="30d">Last 30 Days</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="detailChart"></canvas>
+                    </div>
+
+                    <!-- Top Processes -->
+                    <h3>Top Processes (CPU/RAM)</h3>
+                    <table class="disk-table" style="margin-bottom: 20px;">
+                        <thead>
+                            <tr>
+                                <th>Process</th>
+                                <th>PID</th>
+                                <th>CPU %</th>
+                                <th>RAM %</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${(vm.top_processes || []).map(p => `
+                                <tr>
+                                    <td>${p.name}</td>
+                                    <td class="mono">${p.pid || '-'}</td>
+                                    <td>${p.cpu}%</td>
+                                    <td>${p.ram}%</td>
+                                    <td>
+                                        ${p.pid ? `<button class="btn" style="padding: 2px 6px; font-size: 0.8rem; color: #ef4444;" onclick="killProcess('${vm.hostname}', ${p.pid}, '${p.name}')" title="Kill Process">💀</button>` : '-'}
+                                    </td>
+                                </tr>
+                            `).join('') || '<tr><td colspan="5">No process data available</td></tr>'}
+                        </tbody>
+                    </table>
+
+                    ${renderContainers(vm.containers, vm.hostname)}
+                    ${renderPods(vm.pods)}
+                    
+                    <h3>Disk Usage</h3>
+                    <table class="disk-table">
+                        <thead>
+                            <tr>
+                                <th>Mount</th>
+                                <th>Used / Total</th>
+                                <th>Usage</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${diskRows}
+                        </tbody>
+                    </table>
+
+                    <div class="debug-section">
+                        <button class="btn-text" onclick="toggleRawData()">Toggle Raw JSON Data (Debug)</button>
+                        <pre id="raw-data" class="hidden">${JSON.stringify(vm, null, 2)}</pre>
+                    </div>
+
+                    <!-- Tools Section (v1.22) -->
+                    <div class="info-group" style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                        <h3>🛠️ Diagnostic Tools</h3>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <select id="cmd-select" class="form-input" style="flex: 1;" onchange="toggleCmdArgs()">
+                                <option value="uptime">System Uptime</option>
+                                <option value="disk_space">Check Disk Space (df -h)</option>
+                                <option value="ping">Ping (Connectivity Check)</option>
+                                <option value="services">List Running Services</option>
+                                <option value="check_service">Check Service Status</option>
+                                <option value="list_packages">📦 List Installed Packages</option>
+                                <option disabled>--- Advanced ---</option>
+                                <option value="update_agent">Update Agent (If Available)</option>
+                                <option value="restart_vm" style="color: red;">Restart VM (Reboot)</option>
+                                <option value="system_update" style="color: darkred; font-weight: bold;">System Update & Reboot (OS)</option>
+                                <option disabled>--- Stress Tests ---</option>
+                                <option value="stress_cpu">⚠️ Test Alarm: High CPU (75s)</option>
+                                <option value="stress_ram">⚠️ Test Alarm: High RAM (75s)</option>
+                            </select>
+                            <input id="cmd-args" type="text" class="form-input hidden" placeholder="Enter target (e.g., 8.8.8.8 or nginx)" style="flex: 1.5;">
+                            <button class="btn btn-primary" onclick="runCommand('${vm.hostname}')">Run Command</button>
+                        </div>
+                        <div id="cmd-console" class="cmd-console hidden">
+                            <div class="cmd-header">
+                                <span>Console Output</span>
+                                <span id="cmd-status" class="badge">Waiting...</span>
+                            </div>
+                            <pre id="cmd-output">Logs will appear here...</pre>
+                        </div>
+                    </div>
+                `;
+
+                // Render Chart using Chart.js
+                if (vm.history && vm.history.length > 0) {
+                    // Destroy any existing chart first
+                    if (detailChartInstance) {
+                        detailChartInstance.destroy();
+                        detailChartInstance = null;
+                    }
+                    detailChartInstance = renderChartWithInstance('detailChart', vm.history);
+                }
+
+            } catch (error) {
+                console.error(error);
+                modalBody.innerHTML = `<div style="text-align:center; padding:20px; color:#ef4444;">Error loading details: ${error.message}</div>`;
+            }
+        }
+
+        function toggleCmdArgs() {
+            const cmd = document.getElementById('cmd-select').value;
+            const argsInput = document.getElementById('cmd-args');
+            if (cmd === 'ping' || cmd === 'check_service') {
+                argsInput.classList.remove('hidden');
+            } else {
+                argsInput.classList.add('hidden');
+            }
+        }
+
+        function pollCommandResult(cmdId, consoleDiv, statusBadge, outputPre) {
+            let attempts = 0;
+            const pollInterval = setInterval(async () => {
+                attempts++;
+                try {
+                    const statusRes = await fetch(`/api/commands/${cmdId}`);
+                    if (statusRes.ok) {
+                        const statusData = await statusRes.json();
+                        if (statusData.status === 'completed' || statusData.status === 'failed') {
+                            clearInterval(pollInterval);
+                            outputPre.textContent = statusData.output || '(No output)';
+                            statusBadge.textContent = statusData.status === 'completed' ? 'Success' : 'Failed';
+                            statusBadge.className = statusData.status === 'completed' ? 'badge ok' : 'badge err';
+
+                            // If system update, refresh page after delay
+                            if (statusData.command === 'system_update' && statusData.status === 'completed') {
+                                setTimeout(() => location.reload(), 5000);
+                            }
+                        } else {
+                            // Update running status
+                            if (statusData.output) {
+                                outputPre.textContent = statusData.output + "\n...";
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Poll error", e);
+                }
+
+                if (attempts > 120) { // 120 * 1s = 120s timeout
+                    clearInterval(pollInterval);
+                    statusBadge.textContent = 'TIMEOUT';
+                    outputPre.textContent += '\n\n(Stopped polling after 120s - Agent might be offline or slow)';
+                    statusBadge.className = 'badge err';
+                }
+            }, 1000);
+        }
+
+        async function runCommand(hostname) {
+            const cmdKey = document.getElementById('cmd-select').value;
+            const args = document.getElementById('cmd-args').value;
+            const consoleDiv = document.getElementById('cmd-console');
+            const outputPre = document.getElementById('cmd-output');
+            const statusBadge = document.getElementById('cmd-status');
+
+            consoleDiv.classList.remove('hidden');
+            statusBadge.textContent = 'Queued';
+            statusBadge.className = 'badge';
+            outputPre.textContent = 'Waiting for agent to pick up command...';
+
+            // Safety Confirmation (v1.23)
+            if (cmdKey === 'restart_vm') {
+                if (!confirm('⚠️ WARNING: This will REBOOT the VM immediately.\n\nAre you sure you want to proceed?')) {
+                    consoleDiv.classList.add('hidden');
+                    return;
+                }
+            }
+            if (cmdKey === 'update_agent') {
+                if (!confirm('This will force an update check and restart the agent if an update is found.\n\nContinue?')) {
+                    consoleDiv.classList.add('hidden');
+                    return;
+                }
+            }
+            if (cmdKey === 'system_update') {
+                if (!confirm('⚠️ CRITICAL WARNING: This will run a FULL SYSTEM UPDATE and then REBOOT the VM.\n\nThis may take several minutes.\n\nAre you sure?')) {
+                    consoleDiv.classList.add('hidden');
+                    return;
+                }
+            }
+
+            try {
+                // Queue command
+                const res = await fetch(`/api/vms/${hostname}/command`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: cmdKey, args: args })
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    outputPre.textContent = `Error: ${data.error}`;
+                    statusBadge.textContent = 'Failed';
+                    statusBadge.style.background = 'var(--danger)';
+                    return;
+                }
+
+                // Poll for result
+                pollCommandResult(data.id, consoleDiv, statusBadge, outputPre);
+
+            } catch (error) {
+                outputPre.textContent = `request failed: ${error}`;
+            }
+        }
+
+        async function runContainerAction(hostname, runtime, action, containerId) {
+            const cmdKey = 'container_action';
+            const args = `${runtime} ${action} ${containerId}`;
+
+            if (action === 'restart' || action === 'stop') {
+                if (!confirm(`Are you sure you want to ${action.toUpperCase()} container "${containerId}"?`)) {
+                    return;
+                }
+            }
+
+            // Show Console
+            const consoleDiv = document.getElementById('cmd-console');
+            const outputPre = document.getElementById('cmd-output');
+            const statusBadge = document.getElementById('cmd-status');
+
+            if (consoleDiv) {
+                consoleDiv.classList.remove('hidden');
+                statusBadge.textContent = 'Queued';
+                statusBadge.className = 'badge';
+                outputPre.textContent = `Executing: ${action} ${containerId}\nWaiting...`;
+
+                // Scroll to tools
+                document.getElementById('cmd-select').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            try {
+                const res = await fetch(`/api/vms/${hostname}/command`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: cmdKey, args: args })
+                });
+                const data = await res.json();
+
+                if (data.id) {
+                    pollCommandResult(data.id, consoleDiv, statusBadge, outputPre);
+                } else if (data.error) {
+                    outputPre.textContent = `Error: ${data.error}`;
+                }
+            } catch (err) {
+                console.error(err);
+                if (outputPre) outputPre.textContent += `\nError: ${err}`;
+            }
+        }
+
+        async function killProcess(hostname, pid, name) {
+            const confirmed = confirm(`💀 KILL PROCESS WARNING 💀\n\nAre you sure you want to TERMINATE process "${name}" (PID: ${pid})?\n\nThis will send SIGTERM (15).`);
+            if (!confirmed) return;
+
+            const cmdKey = 'kill_process';
+            const args = `${pid} 15`;
+
+            // Setup Console UI
+            const consoleDiv = document.getElementById('cmd-console');
+            const outputPre = document.getElementById('cmd-output');
+            const statusBadge = document.getElementById('cmd-status');
+
+            if (consoleDiv) {
+                consoleDiv.classList.remove('hidden');
+                statusBadge.textContent = 'Queued';
+                statusBadge.className = 'badge';
+                outputPre.textContent = `Sending SIGTERM to PID ${pid} (${name})...`;
+                document.getElementById('cmd-select').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            try {
+                const res = await fetch(`/api/vms/${hostname}/command`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: cmdKey, args: args })
+                });
+                const data = await res.json();
+
+                if (data.id) {
+                    pollCommandResult(data.id, consoleDiv, statusBadge, outputPre);
+                } else if (data.error) {
+                    outputPre.textContent = `Error: ${data.error}`;
+                }
+            } catch (err) {
+                console.error(err);
+                if (outputPre) outputPre.textContent = `Request failed: ${err}`;
+            }
+        }
+
+        // Track chart instance for cleanup
+        let detailChartInstance = null;
+
+        async function updateChartTimeRange(hostname, range) {
+            const chartCanvas = document.getElementById('detailChart');
+            if (chartCanvas) {
+                chartCanvas.style.opacity = '0.5'; // Indicate loading
+            }
+
+            try {
+                const res = await fetch(`/api/vms/${hostname}?range=${range}`);
+                if (!res.ok) throw new Error("Fetch failed");
+                const data = await res.json();
+
+                if (data.history && data.history.length > 0) {
+                    // Destroy old chart before creating new one
+                    if (detailChartInstance) {
+                        detailChartInstance.destroy();
+                        detailChartInstance = null;
+                    }
+                    detailChartInstance = renderChartWithInstance('detailChart', data.history);
+                }
+            } catch (e) {
+                console.error("Failed to update chart range:", e);
+            } finally {
+                if (chartCanvas) chartCanvas.style.opacity = '1';
+            }
+        }
+
+        function toggleRawData() {
+            const raw = document.getElementById('raw-data');
+            raw.classList.toggle('hidden');
+        }
+
+
+
+        function renderPackageList(rawData, container) {
+            if (!rawData) return;
+
+            const lines = rawData.split('\n').filter(l => l.trim());
+            const count = lines.length;
+
+            // Build searchable UI
+            container.innerHTML = `
+                <div style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                    <strong>Found ${count} packages</strong>
+                    <input type="text" id="pkg-search" placeholder="Filter packages..." 
+                           style="padding: 4px 8px; border: 1px solid #444; border-radius: 4px; background: #222; color: #fff; width: 200px;"
+                           onkeyup="filterPackages()">
+                </div>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #333;">
+                    <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                        <thead style="position: sticky; top: 0; background: #2a2a2a;">
+                            <tr>
+                                <th style="text-align: left; padding: 8px;">Package Name</th>
+                                <th style="text-align: left; padding: 8px;">Version</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pkg-list-body">
+                            ${lines.map(line => {
+                const parts = line.split('\t');
+                const name = parts[0] || line;
+                const ver = parts[1] || '';
+                return `<tr><td style="padding: 4px 8px;">${name}</td><td style="padding: 4px 8px; color: #888;">${ver}</td></tr>`;
+            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function filterPackages() {
+            const input = document.getElementById('pkg-search');
+            const filter = input.value.toLowerCase();
+            const tbody = document.getElementById('pkg-list-body');
+            const rows = tbody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const text = rows[i].textContent.toLowerCase();
+                rows[i].style.display = text.includes(filter) ? "" : "none";
+            }
+        }
+        function renderHistoryChart(history) {
+            const chart = document.getElementById('history-chart');
+            if (!chart) return;
+            const width = chart.offsetWidth;
+            const height = 120;
+            const points = history.length;
+            const stepX = width / Math.max(points - 1, 1);
+
+            // Create SVG paths for CPU and RAM
+            const cpuPath = history.map((h, i) =>
+                `${i === 0 ? 'M' : 'L'} ${i * stepX} ${height - (h.cpu_instant * height / 100)}`
+            ).join(' ');
+
+            const ramPath = history.map((h, i) =>
+                `${i === 0 ? 'M' : 'L'} ${i * stepX} ${height - (h.ram_percent * height / 100)}`
+            ).join(' ');
+
+            chart.innerHTML = `
+                <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+                    <path d="${cpuPath}" fill="none" stroke="var(--color-cpu)" stroke-width="2"/>
+                    <path d="${ramPath}" fill="none" stroke="var(--color-ram)" stroke-width="2"/>
+                </svg>
+                <div class="chart-legend">
+                    <span class="legend-cpu">● CPU</span>
+                    <span class="legend-ram">● RAM</span>
+                </div>
+            `;
+        }
+
+        // Event Listeners
+        refreshBtn.addEventListener('click', () => {
+            refreshBtn.classList.add('spinning');
+            fetchVMs().then(() => {
+                setTimeout(() => refreshBtn.classList.remove('spinning'), 500);
+            });
+        });
+
+        modalClose.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            history.pushState('', document.title, window.location.pathname); // Clear hash
+        });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+                history.pushState('', document.title, window.location.pathname); // Clear hash
+            }
+        });
+
+        // v1.30 - Search Filter (now uses unified applyFilters)
+        document.getElementById('search-box').addEventListener('input', (e) => {
+            applyFilters();
+        });
+
+        // v1.35 - Send SMS button
+        async function sendSMS() {
+            const btn = document.getElementById('send-sms-btn');
+            const originalText = btn.textContent;
+            btn.textContent = '⏳ Sending...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/send-sms', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    btn.textContent = '✅ SMS Sent!';
+                    setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 3000);
+                } else {
+                    btn.textContent = '❌ Failed';
+                    alert('SMS failed: ' + (data.error || 'Unknown error'));
+                    setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+                }
+            } catch (err) {
+                btn.textContent = '❌ Error';
+                alert('SMS error: ' + err.message);
+                setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+            }
+        }
+
+        // Initial load and auto-refresh
+        fetchVMs().then(() => {
+            // v1.28.22 - Deep linking: open VM if specified in URL hash
+            const hashVM = window.location.hash.slice(1);
+            if (hashVM) {
+                showDetails(hashVM);
+            }
+        });
+        refreshTimer = setInterval(() => {
+            fetchVMs();
+            // Update "last updated" text
+            let seconds = 0;
+            const updateInterval = setInterval(() => {
+                seconds++;
+                if (seconds < 60) {
+                    lastUpdate.textContent = `Updated ${seconds}s ago`;
+                }
+            }, 1000);
+
+            setTimeout(() => clearInterval(updateInterval), REFRESH_INTERVAL);
+        }, REFRESH_INTERVAL);
+    </script>
+    <div style="text-align: center; margin-top: 40px; color: #666; font-size: 0.9rem;">
+        VM Monitoring System &copy; 2026 VM Monitor Contributors<br>
+        Dashboard v1.38 | <a href="/changelog" style="color: #666; text-decoration: underline;">Changelog</a> |
+        Source Available Soon
+    </div>
+</body>
+
+</html>
