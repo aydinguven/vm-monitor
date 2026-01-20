@@ -203,8 +203,7 @@ Control what's enabled on the dashboard:
   "schedule": {
     "enabled": true,
     "timezone": "Europe/Istanbul",
-    "start_hour": 9,
-    "end_hour": 18,
+    "times": ["09:00", "11:30", "14:30", "17:00"],
     "days": ["mon", "tue", "wed", "thu", "fri"]
   },
   "twilio": {

@@ -120,6 +120,49 @@ def save_sms_config(config: Dict[str, Any]) -> bool:
         return False
 
 
+def get_sms_schedule_times() -> list:
+    """
+    Get SMS schedule times from config.
+    
+    Returns list of (hour, minute) tuples.
+    Example config: {"schedule": {"times": ["09:00", "11:30", "14:30", "17:00"]}}
+    
+    Falls back to default times if not configured.
+    """
+    config = _load_config()
+    default_times = [(8, 30), (12, 0), (13, 30), (17, 0)]
+    
+    if not config:
+        return default_times
+    
+    schedule = config.get("schedule", {})
+    times_config = schedule.get("times", [])
+    
+    if not times_config:
+        return default_times
+    
+    times = []
+    for time_str in times_config:
+        try:
+            if ":" in time_str:
+                parts = time_str.split(":")
+                hour = int(parts[0])
+                minute = int(parts[1]) if len(parts) > 1 else 0
+                if 0 <= hour <= 23 and 0 <= minute <= 59:
+                    times.append((hour, minute))
+                else:
+                    logger.warning(f"Invalid time value: {time_str}")
+            else:
+                # Just hour number
+                hour = int(time_str)
+                if 0 <= hour <= 23:
+                    times.append((hour, 0))
+        except (ValueError, IndexError) as e:
+            logger.warning(f"Invalid time format '{time_str}': {e}")
+    
+    return times if times else default_times
+
+
 def get_full_config() -> Dict[str, Any]:
     """Get the full configuration (for API endpoints)."""
     config = _load_config()

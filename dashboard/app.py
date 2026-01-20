@@ -204,8 +204,10 @@ scheduler.add_job(
     id="cleanup_stale_vms"
 )
 
-# SMS Alert schedule: 08:30, 12:00, 13:30, 17:00 (Turkey time)
-for hour, minute in [(8, 30), (12, 0), (13, 30), (17, 0)]:
+# SMS Alert schedule - read times from sms_config.json (v1.46)
+from sms_config import get_sms_schedule_times
+sms_times = get_sms_schedule_times()
+for hour, minute in sms_times:
     scheduler.add_job(
         func=send_sms_alert,
         trigger="cron",

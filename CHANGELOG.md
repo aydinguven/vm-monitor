@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.46 (2026-01-21)
+- **Feature**: Configurable SMS schedule times via `sms_config.json`.
+- **Config**: New `schedule.times` array (e.g., `["09:00", "11:30", "14:30", "17:00"]`).
+- **Note**: Falls back to default times (08:30, 12:00, 13:30, 17:00) if not configured.
+
 ## v1.45.3 (2026-01-21)
 - **Security**: Agent now runs as dedicated `vm-agent` user (not root).
 - **Security**: Dynamic sudoers rules generated for detected binaries (podman, docker, systemctl, etc.).
