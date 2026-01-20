@@ -141,7 +141,19 @@ function Install-Agent {
     
     # 3. Copy agent files
     Write-Host "[3/5] Installing agent code..." -ForegroundColor Blue
-    $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+    # Robust path detection
+    if ($PSScriptRoot) {
+        $ScriptPath = $PSScriptRoot
+    }
+    else {
+        $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+    }
+    
+    # If still null (e.g. some manual invocation contexts), assume current dir if agent.py exists
+    if (-not $ScriptPath) {
+        $ScriptPath = Get-Location
+    }
+
     $SourceRoot = Split-Path -Parent $ScriptPath
     
     # Check if we're in the agent directory or scripts directory
