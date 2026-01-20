@@ -4,9 +4,9 @@
 $ErrorActionPreference = "Stop"
 
 Write-Host ""
-Write-Host "╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║              VM Agent - Cleanup Script                    ║" -ForegroundColor Cyan  
-Write-Host "╚═══════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "==========================================================" -ForegroundColor Cyan
+Write-Host "              VM Agent - Cleanup Script                   " -ForegroundColor Cyan  
+Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host ""
 
 $confirm = Read-Host "This will remove VM Agent completely. Are you sure? [y/N]"
@@ -16,7 +16,7 @@ if ($confirm -notmatch "^[Yy]") {
 }
 
 Write-Host ""
-Write-Host "🧹 Removing VM Agent..." -ForegroundColor Green
+Write-Host "[-] Removing VM Agent..." -ForegroundColor Green
 
 # 1. Stop and remove scheduled task
 Write-Host "  Stopping scheduled task..." -ForegroundColor Cyan
@@ -24,7 +24,7 @@ $task = Get-ScheduledTask -TaskName "VMAgent" -ErrorAction SilentlyContinue
 if ($task) {
     Stop-ScheduledTask -TaskName "VMAgent" -ErrorAction SilentlyContinue
     Unregister-ScheduledTask -TaskName "VMAgent" -Confirm:$false
-    Write-Host "  ✓ Removed scheduled task" -ForegroundColor Green
+    Write-Host "  * Removed scheduled task" -ForegroundColor Green
 }
 
 # 2. Stop any running agent processes
@@ -44,7 +44,7 @@ if ($nssmService) {
     else {
         sc.exe delete VMAgent
     }
-    Write-Host "  ✓ Removed NSSM service" -ForegroundColor Green
+    Write-Host "  * Removed NSSM service" -ForegroundColor Green
 }
 
 # 4. Remove application files
@@ -52,14 +52,14 @@ Write-Host "  Removing application files..." -ForegroundColor Cyan
 $installDir = "C:\vm-agent"
 if (Test-Path $installDir) {
     Remove-Item $installDir -Recurse -Force
-    Write-Host "  ✓ Removed $installDir" -ForegroundColor Green
+    Write-Host "  * Removed $installDir" -ForegroundColor Green
 }
 
 # 5. Clean up temp files
 Remove-Item "$env:TEMP\vm-agent*" -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ""
-Write-Host "╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "║                  ✅ Cleanup complete!                     ║" -ForegroundColor Green
-Write-Host "╚═══════════════════════════════════════════════════════════╝" -ForegroundColor Green
+Write-Host "==========================================================" -ForegroundColor Green
+Write-Host "                  Cleanup complete!                       " -ForegroundColor Green
+Write-Host "==========================================================" -ForegroundColor Green
 Write-Host ""
