@@ -310,17 +310,19 @@ EOF
     APT_PATH=$(which apt-get 2>/dev/null)
     
     sudo bash -c "cat > /etc/sudoers.d/vm-agent" <<EOF
-# VM Agent - Minimal Sudo Rules (v1.45)
+# VM Agent - Sudo Rules (v1.45.2)
+# Without trailing args, these commands can be run with any arguments
 Defaults:vm-agent !requiretty
 EOF
     
-    [ -n "$PODMAN_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $PODMAN_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
-    [ -n "$DOCKER_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $DOCKER_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
-    [ -n "$SYSTEMCTL_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $SYSTEMCTL_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    # Note: In sudoers, "command" alone (without args) allows ANY arguments
+    [ -n "$PODMAN_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $PODMAN_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$DOCKER_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $DOCKER_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$SYSTEMCTL_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $SYSTEMCTL_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
     [ -n "$REBOOT_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $REBOOT_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
-    [ -n "$DNF_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $DNF_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
-    [ -n "$YUM_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $YUM_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
-    [ -n "$APT_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $APT_PATH *" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$DNF_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $DNF_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$YUM_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $YUM_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$APT_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $APT_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
     
     sudo chmod 440 /etc/sudoers.d/vm-agent
     
