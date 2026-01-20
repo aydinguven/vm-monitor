@@ -40,9 +40,10 @@ New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 
 # Download agent files
 Write-Host "[INFO] Downloading agent files..." -ForegroundColor Green
-$UpdateUrl = "https://your-update-server.com"
-Invoke-WebRequest -Uri "$UpdateUrl/agent/agent.py" -OutFile "$InstallDir\agent.py"
-Invoke-WebRequest -Uri "$UpdateUrl/agent/requirements.txt" -OutFile "$InstallDir\requirements.txt"
+$DownloadUrl = "$Server/static/downloads"
+$UpdateUrl = $Server
+Invoke-WebRequest -Uri "$DownloadUrl/agent.py" -OutFile "$InstallDir\agent.py"
+Invoke-WebRequest -Uri "$DownloadUrl/requirements.txt" -OutFile "$InstallDir\requirements.txt"
 
 # Create virtual environment
 Write-Host "[INFO] Setting up Python environment..." -ForegroundColor Green
