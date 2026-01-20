@@ -18,8 +18,14 @@ A lightweight, self-hosted VM monitoring system with a Python agent and Flask-ba
 ### Multi-Platform Agent
 | Platform | Installer | Runs As |
 |----------|-----------|---------|
-| **Linux** (RHEL, CentOS, Rocky, Oracle, Ubuntu, Debian) | `setup.sh` | Systemd service (`vm-agent` user) |
+| **Linux** (Any distro with systemd) | `setup.sh` | Systemd service (`vm-agent` user) |
 | **Windows** (Server 2016+, 10/11) | `setup.ps1` | Scheduled Task (SYSTEM) |
+| **macOS** | Manual | LaunchAgent |
+| **BSD/Other** | Manual | Any init system |
+
+The agent is **pure Python** - no compiled components. Runs on any system with Python 3.6+.
+
+> 💡 **Offline Install**: Pre-built wheels included for `psutil`, `requests`, `distro`.
 
 ### Container & Kubernetes Discovery
 - Auto-discovers **Docker** and **Podman** containers (including rootless)
