@@ -1181,21 +1181,34 @@ def execute_command(cmd_data: dict):
                 report_result(cmd_id, "completed", "No updates found. Agent is up to date.")
                 
         elif cmd_key == "system_update":
-            report_result(cmd_id, "running", "Detecting package manager...")
+            report_result(cmd_id, "running", "Detecting update mechanism...")
             update_cmd = []
             
-            # Detect package manager
-            if shutil.which("apt-get"):
+            # Check for secure wrapper (v1.44)
+            if os.path.exists("/usr/local/bin/vm-agent-sysupdate"):
+                 update_cmd = ["sudo", "/usr/local/bin/vm-agent-sysupdate"]
+            
+            # Fallback for root/legacy
+            elif shutil.which("apt-get"):
+                if os.geteuid() != 0:
+                     report_result(cmd_id, "failed", "System update requires root or wrapper script.")
+                     return
                 update_cmd = ["bash", "-c", "DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y"]
             elif shutil.which("dnf"):
+                if os.geteuid() != 0:
+                     report_result(cmd_id, "failed", "System update requires root or wrapper script.")
+                     return
                 update_cmd = ["dnf", "update", "-y"]
             elif shutil.which("yum"):
+                if os.geteuid() != 0:
+                     report_result(cmd_id, "failed", "System update requires root or wrapper script.")
+                     return
                 update_cmd = ["yum", "update", "-y"]
             else:
-                report_result(cmd_id, "failed", "No supported package manager found (apt/dnf/yum)")
+                report_result(cmd_id, "failed", "No supported package manager found")
                 return
 
-            report_result(cmd_id, "running", f"Running system update ({update_cmd[0]}). This may take a while...")
+            report_result(cmd_id, "running", f"Running system update... This may take a while...")
             
             try:
                 # 10 minute timeout for updates
@@ -1210,7 +1223,10 @@ def execute_command(cmd_data: dict):
                 if result.returncode == 0:
                     report_result(cmd_id, "completed", "Update successful. Rebooting system now...\n\n" + output[-500:]) # Show last 500 chars
                     time.sleep(3)
-                    subprocess.run(["reboot"])
+                    if os.geteuid() != 0:
+                        subprocess.run(["sudo", "reboot"])
+                    else:
+                        subprocess.run(["reboot"])
                 else:
                     report_result(cmd_id, "failed", "Update failed:\n" + output)
             except subprocess.TimeoutExpired:

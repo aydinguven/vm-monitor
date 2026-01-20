@@ -175,6 +175,14 @@ install_agent() {
     sudo mkdir -p "$INSTALL_DIR"
     sudo mkdir -p /etc/vm-agent/kubeconfigs
     
+    # Create vm-agent user (Hardening v1.44)
+    if ! id "vm-agent" &>/dev/null; then
+        echo -e "${BLUE}  Creating vm-agent user...${NC}"
+        sudo useradd -r -s /sbin/nologin -d "$INSTALL_DIR" vm-agent
+    fi
+    sudo chown -R vm-agent:vm-agent "$INSTALL_DIR"
+    sudo chmod 750 "$INSTALL_DIR"
+    
     # 3. Discover kubeconfigs (if pods enabled)
     if [ "$FEATURE_PODS" = "true" ]; then
         echo -e "${BLUE}[3/6] Discovering kubeconfigs...${NC}"
@@ -266,6 +274,42 @@ install_agent() {
 EOF
     sudo chmod 600 "$INSTALL_DIR/agent_config.json"
     
+    # Sudoers & Groups (Hardening v1.44)
+    # 1. Add to docker group if exists
+    if getent group docker >/dev/null; then
+        echo -e "${BLUE}  Adding vm-agent to docker group...${NC}"
+        sudo usermod -aG docker vm-agent
+    fi
+    
+    # 2. Create system update wrapper securely
+    echo -e "${BLUE}  Configuring sudoers for system updates...${NC}"
+    sudo bash -c "cat > /usr/local/bin/vm-agent-sysupdate" <<'EOF'
+#!/bin/bash
+# Secure wrapper for system updates by vm-agent
+set -e
+if command -v apt-get &> /dev/null; then
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update && apt-get upgrade -y
+elif command -v dnf &> /dev/null; then
+    dnf update -y
+elif command -v yum &> /dev/null; then
+    yum update -y
+else
+    echo "No supported package manager found."
+    exit 1
+fi
+EOF
+    sudo chmod 755 /usr/local/bin/vm-agent-sysupdate
+    sudo chown root:root /usr/local/bin/vm-agent-sysupdate
+    
+    # 3. Create sudoers file
+    # Allow: Update Wrapper, Reboot, Systemctl Restart (for self-healing if needed)
+    sudo bash -c "cat > /etc/sudoers.d/vm-agent" <<EOF
+vm-agent ALL=(ALL) NOPASSWD: /usr/local/bin/vm-agent-sysupdate
+vm-agent ALL=(ALL) NOPASSWD: /usr/sbin/reboot, /usr/sbin/shutdown
+EOF
+    sudo chmod 440 /etc/sudoers.d/vm-agent
+    
     # Setup systemd service
     if [ -f "$INSTALL_DIR/venv/bin/python" ]; then
         SERVICE_PYTHON="$INSTALL_DIR/venv/bin/python"
@@ -280,6 +324,8 @@ After=network.target
 
 [Service]
 Type=simple
+User=vm-agent
+Group=vm-agent
 WorkingDirectory=$INSTALL_DIR
 ExecStart=$SERVICE_PYTHON $INSTALL_DIR/agent.py
 Restart=always
