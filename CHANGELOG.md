@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 - **Feature**: Added dashboard-based Agent Auto-Update. Agents can now pull updates directly from the dashboard.
 - **Feature**: Added `scripts/update_dashboard.sh` for safe dashboard updates (preserves data).
 - **Enhancement**: Dashboard now serves agent binaries and version info via API (`/api/agent/version`).
+- **Enhancement**: Updated dashboard footer with detailed credits and links.
+- **Fix**: Resolved issue where `update_dashboard.sh` could delete the installation root.
 
 ## v1.40 (2026-01-20) - Initial Open Source Release
 - Added interactive installation scripts for Linux and Windows
