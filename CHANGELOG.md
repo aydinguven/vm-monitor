@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.40] - 2026-01-20
+- Initial Open Source Release
+- Added interactive installation scripts for Linux and Windows
+- Added feature flags for modular deployment
+- Added cleanup scripts
+- Improved documentation and screenshots
+
 ## [1.39] - 2026-01-20
 
 ### Added
