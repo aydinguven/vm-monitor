@@ -66,6 +66,18 @@ find "$INSTALL_DIR" -mindepth 1 -maxdepth 1 -not -name "venv" -not -name "instan
 # Copy new code
 cp -r "$SOURCE_ROOT/dashboard/"* "$INSTALL_DIR/"
 
+# 3b. Copy Agent Files for Auto-Update (v1.46+)
+print_step "Packaging agent for auto-update..."
+mkdir -p "$INSTALL_DIR/static/downloads"
+mkdir -p "$INSTALL_DIR/static/scripts"
+# Copy agent files
+cp "$SOURCE_ROOT/agent/agent.py" "$INSTALL_DIR/static/downloads/"
+cp "$SOURCE_ROOT/agent/requirements.txt" "$INSTALL_DIR/static/downloads/" 2>/dev/null || true
+# Copy installer scripts
+cp "$SOURCE_ROOT/scripts/setup.sh" "$INSTALL_DIR/static/scripts/"
+cp "$SOURCE_ROOT/agent/setup.ps1" "$INSTALL_DIR/static/scripts/" 2>/dev/null || true
+echo "  Agent v$(grep 'AGENT_VERSION = ' "$SOURCE_ROOT/agent/agent.py" | cut -d'"' -f2) packaged."
+
 # 4. Restore Instance Data
 print_step "Restoring data..."
 if [ -d "$BACKUP_DIR/instance" ]; then

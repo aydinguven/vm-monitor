@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.46.1 (2026-01-21)
+- **Fix**: `update_dashboard.sh` now copies agent files to `static/downloads/` for auto-update.
+- **Fix**: Agent version API now returns correct version after dashboard updates.
+
 ## v1.46 (2026-01-21)
 - **Feature**: Configurable SMS schedule times via `sms_config.json`.
 - **Config**: New `schedule.times` array (e.g., `["09:00", "11:30", "14:30", "17:00"]`).
