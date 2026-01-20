@@ -3,7 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 ## v1.42 (2026-01-20)
-- **Feature**: Configurable Timezones. Dashboard scheduler timezone can now be configured via `TIMEZONE` env variable (default: Europe/Istanbul).
+- **Feature**: Configurable timezone for scheduler via `instance/config.json` (key: `timezone`). No environment variables required.
+- **Enhancement**: Moved general settings loading to `general_config.py`.
 
 ## v1.41 (2026-01-20)
 - **Feature**: Added dashboard-based Agent Auto-Update. Agents can now pull updates directly from the dashboard.

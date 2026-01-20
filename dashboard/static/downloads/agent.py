@@ -35,7 +35,7 @@ if not IS_WINDOWS:
 # Configuration
 # =============================================================================
 
-AGENT_VERSION = "1.41"
+AGENT_VERSION = "1.42"
 STRESS_DURATION = 75  # Duration in seconds for stress tests
 
 # Server settings

@@ -29,6 +29,7 @@ from config import (
 )
 from models import Command, Metric, VM, db
 from sms_providers import send_sms
+from general_config import get_general_config
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SECRET_KEY
@@ -187,8 +188,9 @@ def send_sms_alert():
             app.logger.error("SMS alert failed to send")
 
 
-from config import TIMEZONE
-scheduler = BackgroundScheduler(timezone=TIMEZONE)
+# Load timezone from config (default to Turkey if not set)
+timezone = get_general_config("timezone", "Europe/Istanbul")
+scheduler = BackgroundScheduler(timezone=timezone)
 scheduler.add_job(
     func=cleanup_old_metrics,
     trigger="interval",
