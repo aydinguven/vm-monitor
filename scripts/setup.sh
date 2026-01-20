@@ -160,7 +160,7 @@ install_agent() {
     echo -e "${GREEN}🚀 Installing VM Agent...${NC}"
     
     # 1. Install system dependencies
-    echo -e "${BLUE}[1/6] Installing system dependencies...${NC}"
+    echo -e "${BLUE}[1/7] Installing system dependencies...${NC}"
     if command -v apt-get &> /dev/null; then
         sudo apt-get update -qq
         sudo apt-get install -y -qq python3-venv python3-pip curl
@@ -301,13 +301,16 @@ EOF
     
     # Generate sudoers rules for container/command access
     echo "  Generating sudoers rules..."
-    PODMAN_PATH=$(which podman 2>/dev/null)
-    DOCKER_PATH=$(which docker 2>/dev/null)
-    SYSTEMCTL_PATH=$(which systemctl 2>/dev/null)
-    REBOOT_PATH=$(which reboot 2>/dev/null)
-    DNF_PATH=$(which dnf 2>/dev/null)
-    YUM_PATH=$(which yum 2>/dev/null)
-    APT_PATH=$(which apt-get 2>/dev/null)
+    PODMAN_PATH=$(which podman 2>/dev/null || true)
+    DOCKER_PATH=$(which docker 2>/dev/null || true)
+    SYSTEMCTL_PATH=$(which systemctl 2>/dev/null || true)
+    REBOOT_PATH=$(which reboot 2>/dev/null || true)
+    DNF_PATH=$(which dnf 2>/dev/null || true)
+    YUM_PATH=$(which yum 2>/dev/null || true)
+    APT_PATH=$(which apt-get 2>/dev/null || true)
+    
+    # Ensure sudoers.d directory exists
+    sudo mkdir -p /etc/sudoers.d
     
     sudo bash -c "cat > /etc/sudoers.d/vm-agent" <<EOF
 # VM Agent - Sudo Rules (v1.45.2)

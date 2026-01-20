@@ -35,7 +35,7 @@ if not IS_WINDOWS:
 # Configuration
 # =============================================================================
 
-AGENT_VERSION = "1.43"
+AGENT_VERSION = "1.45"
 STRESS_DURATION = 75  # Duration in seconds for stress tests
 
 # Config loader
@@ -751,15 +751,18 @@ def get_containers() -> list:
     
     def run_container_cmd(runtime, user=None):
         """Run container list command, optionally as a specific user."""
-        cmd = [runtime, "ps", "--format", "{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.CreatedAt}}"]
+        base_cmd = [runtime, "ps", "--format", "{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.CreatedAt}}"]
         
         env = os.environ.copy()
         
         if user:
             # For rootless podman, we need to run as that user
             # and set XDG_RUNTIME_DIR
-            cmd = ["sudo", "-u", user] + cmd
+            cmd = ["sudo", "-u", user] + base_cmd
             env["XDG_RUNTIME_DIR"] = f"/run/user/{_get_uid(user)}"
+        else:
+            # For root-level containers, agent runs as vm-agent so needs sudo
+            cmd = ["sudo"] + base_cmd
         
         try:
             result = subprocess.run(

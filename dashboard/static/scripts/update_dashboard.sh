@@ -76,13 +76,46 @@ if [ -d "$BACKUP_DIR/instance" ]; then
 fi
 rm -rf "$BACKUP_DIR"
 
-# 5. Fix Permissions
-print_step "Fixing permissions..."
+# 5. Migration (Env -> JSON)
+if [ ! -f "$INSTALL_DIR/instance/config.json" ]; then
+    ENV_FILE=""
+    if [ -f "/etc/vm-dashboard.env" ]; then
+        ENV_FILE="/etc/vm-dashboard.env"
+    elif [ -f "/etc/vm-dashboard.env.bak" ]; then
+        ENV_FILE="/etc/vm-dashboard.env.bak"
+    fi
+
+    if [ -n "$ENV_FILE" ]; then
+        print_step "Migrating legacy .env ($ENV_FILE) to config.json..."
+        # Source the env file
+        set -a; source "$ENV_FILE"; set +a
+        
+        # Create config.json
+        mkdir -p "$INSTALL_DIR/instance"
+        cat > "$INSTALL_DIR/instance/config.json" <<EOF
+{
+  "secret_key": "$FLASK_SECRET_KEY",
+  "api_key": "$VM_DASHBOARD_API_KEY",
+  "timezone": "Europe/Istanbul"
+}
+EOF
+        echo "Migration complete."
+        # Permission fix will happen next
+    fi
+fi
+
+# 6. Fix Permissions
+print_step "Fixing permissions (Hardening)..."
 chown -R vm-agent:vm-agent "$INSTALL_DIR"
-chmod -R 755 "$INSTALL_DIR"
-# Secure config files
-[ -f "$INSTALL_DIR/instance/sms_config.json" ] && chmod 600 "$INSTALL_DIR/instance/sms_config.json"
-[ -f "/etc/vm-dashboard.env" ] && chmod 600 "/etc/vm-dashboard.env"
+# 750/640 for hardening, excluding venv
+find "$INSTALL_DIR" -type d -not -path "$INSTALL_DIR/venv*" -exec chmod 750 {} \;
+find "$INSTALL_DIR" -type f -not -path "$INSTALL_DIR/venv*" -exec chmod 640 {} \;
+
+# Ensure venv executables
+chmod -R 755 "$INSTALL_DIR/venv"
+
+# Secrets
+[ -f "$INSTALL_DIR/instance/config.json" ] && chmod 600 "$INSTALL_DIR/instance/config.json"
 
 # 6. Update Dependencies
 print_step "Updating python dependencies..."
@@ -104,8 +137,9 @@ print_step "Running database migrations..."
 # Using the same logic as setup - create_all() is idempotent for checking tables
 # If we had real migrations (alembic), we'd run upgrade here.
 # For now, just ensuring tables exist is enough.
-export $(grep -v '^#' /etc/vm-dashboard.env | xargs)
-sudo -E -u vm-agent ./venv/bin/python -c "
+print_step "Running database migrations..."
+# Run as vm-agent user, app loads config.json automatically
+sudo -u vm-agent ./venv/bin/python -c "
 from app import app, db
 with app.app_context():
     db.create_all()

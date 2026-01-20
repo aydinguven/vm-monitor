@@ -170,14 +170,23 @@ install_agent() {
         sudo dnf install -y -q python3 python3-pip curl
     fi
     
-    # 2. Setup directories
-    echo -e "${BLUE}[2/6] Setting up directories...${NC}"
+    # 2. Create vm-agent user
+    echo -e "${BLUE}[2/7] Creating vm-agent user...${NC}"
+    if ! id "vm-agent" &>/dev/null; then
+        sudo useradd -r -s /bin/false -d /opt/vm-agent vm-agent
+        echo "  Created system user: vm-agent"
+    else
+        echo "  User vm-agent already exists"
+    fi
+    
+    # 3. Setup directories
+    echo -e "${BLUE}[3/7] Setting up directories...${NC}"
     sudo mkdir -p "$INSTALL_DIR"
     sudo mkdir -p /etc/vm-agent/kubeconfigs
     
     # 3. Discover kubeconfigs (if pods enabled)
     if [ "$FEATURE_PODS" = "true" ]; then
-        echo -e "${BLUE}[3/6] Discovering kubeconfigs...${NC}"
+        echo -e "${BLUE}[4/7] Discovering kubeconfigs...${NC}"
         for cfg in /etc/kubernetes/admin.conf /etc/rancher/k3s/k3s.yaml; do
             if [ -f "$cfg" ]; then
                 name=$(basename "$cfg")
@@ -194,11 +203,11 @@ install_agent() {
         done
         sudo chmod 600 /etc/vm-agent/kubeconfigs/* 2>/dev/null || true
     else
-        echo -e "${BLUE}[3/6] Skipping kubeconfig discovery (pods disabled)${NC}"
+        echo -e "${BLUE}[4/7] Skipping kubeconfig discovery (pods disabled)${NC}"
     fi
     
-    # 4. Copy agent code
-    echo -e "${BLUE}[4/6] Installing agent code...${NC}"
+    # 5. Copy agent code
+    echo -e "${BLUE}[5/7] Installing agent code...${NC}"
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     SOURCE_ROOT="$(dirname "$SCRIPT_DIR")"
     
@@ -228,8 +237,8 @@ install_agent() {
         # We assume dependencies like distro/psutil are handled by pip install later
     fi
     
-    # 5. Setup Python venv and install deps
-    echo -e "${BLUE}[5/6] Setting up Python environment...${NC}"
+    # 6. Setup Python venv and install deps
+    echo -e "${BLUE}[6/7] Setting up Python environment...${NC}"
     cd "$INSTALL_DIR"
     
     if sudo python3 -m venv venv 2>/dev/null; then
@@ -248,8 +257,8 @@ install_agent() {
         sudo pip3 install psutil requests distro packaging -q
     fi
     
-    # 6. Create configuration (JSON)
-    echo -e "${BLUE}[6/6] Generating configuration...${NC}"
+    # 7. Create configuration (JSON)
+    echo -e "${BLUE}[7/7] Generating configuration...${NC}"
     sudo bash -c "cat > $INSTALL_DIR/agent_config.json" <<EOF
 {
   "server_url": "$SERVER_URL",
@@ -280,6 +289,8 @@ After=network.target
 
 [Service]
 Type=simple
+User=vm-agent
+Group=vm-agent
 WorkingDirectory=$INSTALL_DIR
 ExecStart=$SERVICE_PYTHON $INSTALL_DIR/agent.py
 Restart=always
@@ -287,6 +298,37 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
+    
+    # Generate sudoers rules for container/command access
+    echo "  Generating sudoers rules..."
+    PODMAN_PATH=$(which podman 2>/dev/null)
+    DOCKER_PATH=$(which docker 2>/dev/null)
+    SYSTEMCTL_PATH=$(which systemctl 2>/dev/null)
+    REBOOT_PATH=$(which reboot 2>/dev/null)
+    DNF_PATH=$(which dnf 2>/dev/null)
+    YUM_PATH=$(which yum 2>/dev/null)
+    APT_PATH=$(which apt-get 2>/dev/null)
+    
+    sudo bash -c "cat > /etc/sudoers.d/vm-agent" <<EOF
+# VM Agent - Sudo Rules (v1.45.2)
+# Without trailing args, these commands can be run with any arguments
+Defaults:vm-agent !requiretty
+EOF
+    
+    # Note: In sudoers, "command" alone (without args) allows ANY arguments
+    [ -n "$PODMAN_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $PODMAN_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$DOCKER_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $DOCKER_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$SYSTEMCTL_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $SYSTEMCTL_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$REBOOT_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $REBOOT_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$DNF_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $DNF_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$YUM_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $YUM_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    [ -n "$APT_PATH" ] && echo "vm-agent ALL=(ALL) NOPASSWD: $APT_PATH" | sudo tee -a /etc/sudoers.d/vm-agent > /dev/null
+    
+    sudo chmod 440 /etc/sudoers.d/vm-agent
+    
+    # Fix ownership
+    sudo chown -R vm-agent:vm-agent "$INSTALL_DIR"
+    sudo chown -R vm-agent:vm-agent /etc/vm-agent
     
     sudo systemctl daemon-reload
     sudo systemctl enable vm-agent
