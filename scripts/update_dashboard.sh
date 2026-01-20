@@ -87,6 +87,14 @@ chmod -R 755 "$INSTALL_DIR"
 # 6. Update Dependencies
 print_step "Updating python dependencies..."
 cd "$INSTALL_DIR"
+
+# Ensure venv exists (in case of recovery)
+if [ ! -d "venv" ]; then
+    print_step "Creating virtual environment..."
+    python3 -m venv venv
+    chown -R vm-agent:vm-agent venv
+fi
+
 ./venv/bin/pip install --upgrade pip -q
 ./venv/bin/pip install -r requirements.txt -q
 ./venv/bin/pip install gunicorn requests -q
