@@ -76,7 +76,25 @@ if [ -d "$BACKUP_DIR/instance" ]; then
 fi
 rm -rf "$BACKUP_DIR"
 
-# 5. Fix Permissions
+# 5. Migration (Env -> JSON)
+if [ ! -f "$INSTALL_DIR/instance/config.json" ] && [ -f "/etc/vm-dashboard.env" ]; then
+    print_step "Migrating legacy .env to config.json..."
+    # Source the env file
+    set -a; source /etc/vm-dashboard.env; set +a
+    
+    # Create config.json
+    mkdir -p "$INSTALL_DIR/instance"
+    cat > "$INSTALL_DIR/instance/config.json" <<EOF
+{
+  "secret_key": "$FLASK_SECRET_KEY",
+  "api_key": "$VM_DASHBOARD_API_KEY",
+  "timezone": "Europe/Istanbul"
+}
+EOF
+    echo "Migration complete. legacy .env preserved in /etc/"
+fi
+
+# 6. Fix Permissions
 print_step "Fixing permissions (Hardening)..."
 chown -R vm-agent:vm-agent "$INSTALL_DIR"
 # 750/640 for hardening, excluding venv
