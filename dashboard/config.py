@@ -5,23 +5,25 @@ Copy this file to config.py and customize for your environment.
 
 import os
 
-# Flask settings
-SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "change-this-in-production")
-DEBUG = os.getenv("FLASK_DEBUG", "False").lower() == "true"
+# Flask settings (Priority: general_config > env > default)
+from general_config import get_general_config
+
+SECRET_KEY = get_general_config("secret_key", os.getenv("FLASK_SECRET_KEY", "change-this-in-production"))
+DEBUG = str(get_general_config("debug", os.getenv("FLASK_DEBUG", "False"))).lower() == "true"
 
 # Database
-SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///vm_metrics.db")
+SQLALCHEMY_DATABASE_URI = get_general_config("database_url", os.getenv("DATABASE_URL", "sqlite:///vm_metrics.db"))
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # API Authentication
-API_KEY = os.getenv("VM_DASHBOARD_API_KEY", "changeme")
+API_KEY = get_general_config("api_key", os.getenv("VM_DASHBOARD_API_KEY", "changeme"))
 
 # Metrics settings
-METRIC_RETENTION_HOURS = int(os.getenv("METRIC_RETENTION_HOURS", "24"))
-CLEANUP_INTERVAL_MINUTES = int(os.getenv("CLEANUP_INTERVAL_MINUTES", "60"))
+METRIC_RETENTION_HOURS = int(get_general_config("metric_retention_hours", os.getenv("METRIC_RETENTION_HOURS", "24")))
+CLEANUP_INTERVAL_MINUTES = int(get_general_config("cleanup_interval_minutes", os.getenv("CLEANUP_INTERVAL_MINUTES", "60")))
 
 # VM offline threshold (seconds since last metric)
-VM_OFFLINE_THRESHOLD = int(os.getenv("VM_OFFLINE_THRESHOLD", "120"))
+VM_OFFLINE_THRESHOLD = int(get_general_config("vm_offline_threshold", os.getenv("VM_OFFLINE_THRESHOLD", "120")))
 
 # SMS Alerts Configuration - loaded from instance/sms_config.json or env vars
 # See sms_config.py for details

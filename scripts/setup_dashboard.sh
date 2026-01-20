@@ -214,20 +214,21 @@ install_dashboard() {
 }
 EOF
     
-    # Create environment file
-    sudo bash -c "cat > /etc/vm-dashboard.env" <<EOF
-FLASK_SECRET_KEY=$SECRET_KEY
-VM_DASHBOARD_API_KEY=$API_KEY
+    # Create main configuration (config.json)
+    sudo bash -c "cat > $INSTALL_DIR/instance/config.json" <<EOF
+{
+  "secret_key": "$SECRET_KEY",
+  "api_key": "$API_KEY",
+  "timezone": "Europe/Istanbul"
+}
 EOF
-    sudo chmod 600 /etc/vm-dashboard.env
+    sudo chmod 600 "$INSTALL_DIR/instance/config.json"
     
     # 6. Initialize database
     echo -e "${BLUE}[6/7] Initializing database...${NC}"
     cd "$INSTALL_DIR"
     
-    # Set environment variables for Flask
-    export FLASK_SECRET_KEY="$SECRET_KEY"
-    export VM_DASHBOARD_API_KEY="$API_KEY"
+    # (Environment variables no longer needed as config.json is present)
     
     # Initialize database using Flask shell
     sudo -E ./venv/bin/python -c "
@@ -253,7 +254,6 @@ Type=simple
 User=vm-agent
 Group=vm-agent
 WorkingDirectory=$INSTALL_DIR
-EnvironmentFile=/etc/vm-dashboard.env
 ExecStart=$INSTALL_DIR/venv/bin/gunicorn -w 4 -b 0.0.0.0:$PORT app:app
 Restart=always
 

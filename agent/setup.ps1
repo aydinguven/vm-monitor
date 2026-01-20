@@ -185,26 +185,27 @@ function Install-Agent {
         .\venv\Scripts\pip.exe install psutil requests packaging -q
     }
     
-    # 5. Create configuration
+    # 5. Create configuration (JSON)
     Write-Host "[5/5] Generating configuration..." -ForegroundColor Blue
-    @"
-VM_AGENT_SERVER=$Server
-VM_AGENT_KEY=$Key
-VM_AGENT_INTERVAL=$Interval
-FEATURE_CONTAINERS=$FeatureContainers
-FEATURE_PODS=$FeaturePods
-FEATURE_COMMANDS=$FeatureCommands
-FEATURE_AUTO_UPDATE=$FeatureAutoUpdate
-"@ | Out-File -FilePath "$InstallDir\vm-agent.conf" -Encoding ASCII
+    
+    $jsonConfig = @{
+        "server_url"  = $Server
+        "api_key"     = $Key
+        "interval"    = [int]$Interval
+        "hostname"    = [System.Net.Dns]::GetHostName()
+        "auto_update" = $FeatureAutoUpdate
+        "features"    = @{
+            "containers" = $FeatureContainers
+            "pods"       = $FeaturePods
+            "commands"   = $FeatureCommands
+        }
+    }
+    
+    $jsonConfig | ConvertTo-Json -Depth 3 | Out-File -FilePath "$InstallDir\agent_config.json" -Encoding ASCII
     
     # Create PowerShell runner script
     $runScript = @"
 Set-Location '$InstallDir'
-Get-Content vm-agent.conf | ForEach-Object {
-    if (`$_ -match '^([^=]+)=(.*)$') {
-        [Environment]::SetEnvironmentVariable(`$matches[1], `$matches[2], 'Process')
-    }
-}
 & .\venv\Scripts\python.exe agent.py
 "@
     Set-Content -Path "$InstallDir\run_agent.ps1" -Value $runScript -Encoding UTF8
@@ -228,7 +229,7 @@ Get-Content vm-agent.conf | ForEach-Object {
     Write-Host "               Agent installed successfully!              " -ForegroundColor Green
     Write-Host "==========================================================" -ForegroundColor Green
     Write-Host ""
-    Write-Host "  Config:  " -NoNewline; Write-Host "$InstallDir\vm-agent.conf" -ForegroundColor Cyan
+    Write-Host "  Config:  " -NoNewline; Write-Host "$InstallDir\agent_config.json" -ForegroundColor Cyan
     Write-Host "  Status:  " -NoNewline; Write-Host "Get-ScheduledTask -TaskName VMAgent" -ForegroundColor Cyan
     Write-Host "  Logs:    " -NoNewline; Write-Host "Run $InstallDir\run_agent.ps1 manually" -ForegroundColor Cyan
     Write-Host ""

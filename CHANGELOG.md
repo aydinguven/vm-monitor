@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.43 (2026-01-20)
+- **Refactor**: Replaced Environment Variables with JSON configuration files (`instance/config.json` for Dashboard, `agent_config.json` for Agent).
+- **Agent**: Loading config from `agent_config.json` (local or `/etc/vm-agent/`).
+- **Deployment**: Installers now generate JSON config automatically.
+
 ## v1.42 (2026-01-20)
 - **Feature**: Configurable timezone for scheduler via `instance/config.json` (key: `timezone`). No environment variables required.
 - **Enhancement**: Moved general settings loading to `general_config.py`.

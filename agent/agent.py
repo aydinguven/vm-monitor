@@ -35,14 +35,36 @@ if not IS_WINDOWS:
 # Configuration
 # =============================================================================
 
-AGENT_VERSION = "1.42"
+AGENT_VERSION = "1.43"
 STRESS_DURATION = 75  # Duration in seconds for stress tests
 
-# Server settings
-SERVER_URL = os.getenv("VM_AGENT_SERVER", "http://localhost:5000")
-API_KEY = os.getenv("VM_AGENT_KEY", "changeme")
-PUSH_INTERVAL = int(os.getenv("VM_AGENT_INTERVAL", "15"))
-HOSTNAME = os.getenv("VM_AGENT_HOSTNAME", socket.gethostname())
+# Config loader
+def load_config():
+    """Load configuration from agent_config.json if it exists."""
+    # Look in the same directory as script, or /etc/vm-agent/
+    paths = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "agent_config.json"),
+        "/etc/vm-agent/config.json",
+        "C:\\vm-agent\\config.json"
+    ]
+    
+    for p in paths:
+        if os.path.exists(p):
+            try:
+                with open(p, "r") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+    return {}
+
+config = load_config()
+
+# Server settings (Priority: Config File > Env Var > Default)
+SERVER_URL = config.get("server_url", os.getenv("VM_AGENT_SERVER", "http://localhost:5000"))
+API_KEY = config.get("api_key", os.getenv("VM_AGENT_KEY", "changeme"))
+PUSH_INTERVAL = int(config.get("interval", os.getenv("VM_AGENT_INTERVAL", "15")))
+HOSTNAME = config.get("hostname", os.getenv("VM_AGENT_HOSTNAME", socket.gethostname()))
+AUTO_UPDATE = config.get("auto_update", os.getenv("VM_AGENT_AUTO_UPDATE", "true").lower() == "true")
 
 # Linux command whitelist
 ALLOWED_COMMANDS_LINUX = {
@@ -147,8 +169,8 @@ logger = logging.getLogger(__name__)
 
 def check_for_updates() -> bool:
     """Check for updates from the dashboard."""
-    # Check env var first
-    if os.getenv("VM_AGENT_AUTO_UPDATE", "true").lower() != "true":
+    # Check config/env
+    if not AUTO_UPDATE:
         return False
         
     try:

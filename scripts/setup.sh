@@ -229,18 +229,23 @@ install_agent() {
         sudo pip3 install psutil requests distro packaging -q
     fi
     
-    # 6. Create configuration
+    # 6. Create configuration (JSON)
     echo -e "${BLUE}[6/6] Generating configuration...${NC}"
-    sudo bash -c "cat > /etc/vm-agent.conf" <<EOF
-VM_AGENT_SERVER=$SERVER_URL
-VM_AGENT_KEY=$API_KEY
-VM_AGENT_INTERVAL=$INTERVAL
-FEATURE_CONTAINERS=$FEATURE_CONTAINERS
-FEATURE_PODS=$FEATURE_PODS
-FEATURE_COMMANDS=$FEATURE_COMMANDS
-FEATURE_AUTO_UPDATE=$FEATURE_AUTO_UPDATE
+    sudo bash -c "cat > $INSTALL_DIR/agent_config.json" <<EOF
+{
+  "server_url": "$SERVER_URL",
+  "api_key": "$API_KEY",
+  "interval": $INTERVAL,
+  "hostname": "$(hostname)",
+  "auto_update": $FEATURE_AUTO_UPDATE,
+  "features": {
+    "containers": $FEATURE_CONTAINERS,
+    "pods": $FEATURE_PODS,
+    "commands": $FEATURE_COMMANDS
+  }
+}
 EOF
-    sudo chmod 600 /etc/vm-agent.conf
+    sudo chmod 600 "$INSTALL_DIR/agent_config.json"
     
     # Setup systemd service
     if [ -f "$INSTALL_DIR/venv/bin/python" ]; then
@@ -259,7 +264,6 @@ Type=simple
 WorkingDirectory=$INSTALL_DIR
 ExecStart=$SERVICE_PYTHON $INSTALL_DIR/agent.py
 Restart=always
-EnvironmentFile=/etc/vm-agent.conf
 
 [Install]
 WantedBy=multi-user.target
@@ -274,7 +278,7 @@ EOF
     echo -e "${GREEN}║              ✅ Agent installed successfully!             ║${NC}"
     echo -e "${GREEN}╚═══════════════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -e "  Config:   ${CYAN}/etc/vm-agent.conf${NC}"
+    echo -e "  Config:   ${CYAN}$INSTALL_DIR/agent_config.json${NC}"
     echo -e "  Service:  ${CYAN}sudo systemctl status vm-agent${NC}"
     echo -e "  Logs:     ${CYAN}sudo journalctl -u vm-agent -f${NC}"
     echo ""
