@@ -5,13 +5,39 @@ A lightweight, self-hosted VM monitoring system with a Python agent and Flask-ba
 
 ## Features
 
-- **Real-time Monitoring** - CPU, RAM, Disk usage with historical charts
-- **Multi-Platform** - Linux (RHEL/CentOS/Ubuntu) and Windows support
-- **Container Discovery** - Docker, Podman (rootless included), Kubernetes pods
-- **SMS Alerts** - Twilio, Textbelt, İleti Merkezi integration
-- **Remote Commands** - Execute commands on agents from dashboard
-- **Auto-Updates** - Agents automatically update from your server
-- **Cloud Detection** - AWS, GCP, Azure, Oracle Cloud, Proxmox, VMware
+- **Real-time Monitoring**
+  - Tracks CPU (Average/Instant), RAM, Disk (all partitions), Swap, and Network I/O.
+  - Historical charts with selectable time ranges (1h, 24h, 7d, 30d).
+  - Top Process monitoring (CPU/RAM consumers).
+
+- **Multi-Platform Agent**
+  - **Linux**: Supports RHEL, CentOS, Rocky, Oracle Linux, Ubuntu, Debian.
+  - **Windows**: Native PowerShell-based installer, runs as a Scheduled Task.
+
+- **Container & Kubernetes**
+  - Auto-discovers **Docker** and **Podman** containers (including rootless).
+  - Lists **Kubernetes Pods** running on the node (via CRI or filesystem scan).
+  - View container logs and restart/stop/start containers from the dashboard.
+
+- **Agent Auto-Updates**
+  - Agents automatically poll the dashboard for new versions.
+  - Updates are downloaded and applied securely without manual intervention.
+  - Preserves configuration and restarts automatically.
+
+- **Smart Alerting**
+  - Visual badges for Warnings (80%+) and Critical (90%+) usage.
+  - **SMS Notifications** via Twilio, Textbelt, or İleti Merkezi.
+  - Configurable schedule (e.g., only send SMS during business hours).
+  - Customizable timezones.
+
+- **Remote Management**
+  - Execute white-listed diagnostic tools (Ping, Disk Space, Uptime).
+  - Manage system services (Systemd/Windows Services).
+  - Reboot VMs or install system updates remotely.
+
+- **Cloud Awareness**
+  - Auto-detects cloud provider: AWS, GCP, Azure, Oracle Cloud.
+  - Identifies hypervisors: Proxmox, VMware, Hyper-V, KVM.
 
 ## Quick Start
 
@@ -78,6 +104,10 @@ To update to the latest version without losing data:
    - *This will preserve your data (`vm_metrics.db`) and configuration.*
 
 ### Agents
+**Automatic Updates (Recommended)**
+If you enabled "Automatic Updates" during installation, your agents will automatically update themselves within 30 minutes of a dashboard update.
+
+**Manual Update**
 1. Pull the latest changes: `git pull`
 2. Run the installer again: `./scripts/setup.sh` (Linux) or `.\agent\setup.ps1` (Windows)
 3. Re-enter your Dashboard URL and API Key when prompted.
