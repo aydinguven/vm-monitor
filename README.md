@@ -64,13 +64,13 @@ cd vm-monitor && ./scripts/setup.sh
 
 ## 🔥 Why VM Monitor?
 
-### Built for Control, Not Just Visibility
+### More than a Monitor, It's Built for Control
 
 Most monitoring tools show you what's happening. VM Monitor lets you **do something about it**:
 
-- 📱 **Reboot a frozen VM from your phone** - not just see that it's down
+- 📱 **Reboot a frozen VM from your phone** - save time not SSH'ing from a terminal
 - 🔧 **Restart services remotely** - don't SSH into 10 servers
-- 📲 **Get SMS when it matters** - built-in Twilio, no config hell
+- 📲 **Get SMS when it matters** - built-in Twilio, no config hell (more integrations on the way)
 - ⚡ **2-minute setup** - one script, done
 - 🔒 **Self-hosted only** - your data never leaves your network
 - 📴 **Works offline** - pre-built wheels, no internet required
@@ -80,7 +80,7 @@ Most monitoring tools show you what's happening. VM Monitor lets you **do someth
 | Use Case | Why VM Monitor |
 |----------|----------------|
 | **Homelab** | Simple dashboard for your Proxmox VMs and containers |
-| **Small Team** | 5-50 servers without enterprise complexity |
+| **Small Team** | <100 servers without enterprise complexity |
 | **Multi-Cloud** | Single view for AWS + GCP + Oracle + on-prem |
 | **Air-Gapped** | Offline installation with bundled dependencies |
 
@@ -145,7 +145,7 @@ Auto-detects:
 - **Hypervisors**: Proxmox, VMware, Hyper-V, KVM, WSL
 
 ### Mobile Optimized
-Fully responsive with Dark/Light mode support.
+Fully responsive with Dark/Light mode support, seperate mobile UX.
 
 | Dark Mode | Light Mode |
 |-----------|------------|
@@ -312,7 +312,7 @@ vm-monitor/
 <details>
 <summary><strong>How much resources does the agent use?</strong></summary>
 
-The agent uses ~15MB RAM and <1% CPU. It's designed to be invisible.
+The agent uses ~15MB RAM and minimal CPU. It's designed to be invisible.
 </details>
 
 <details>
