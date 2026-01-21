@@ -13,7 +13,7 @@
 
 ---
 
-📢 **This project is in active development.** New versions might occasionally break things, but it's fully offline and self-contained. Contributions, feedback, and critiques are very welcome!
+📢 **This project is in active development.** The name "VM Monitor" is a working title and may change. New versions might occasionally break things, but it's fully offline and self-contained. Contributions, feedback, and critiques are very welcome!
 
 </div>
 
