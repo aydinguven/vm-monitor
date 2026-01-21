@@ -11,15 +11,15 @@ Write-Host "==================" -ForegroundColor Cyan
 
 # Check for Python
 if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-    Write-Host "❌ Python is required but not found" -ForegroundColor Red
-    exit 1
+  Write-Host "❌ Python is required but not found" -ForegroundColor Red
+  exit 1
 }
 
 # Create venv if needed
 $VenvPath = Join-Path $ScriptDir "venv"
 if (-not (Test-Path $VenvPath)) {
-    Write-Host "📦 Creating virtual environment..." -ForegroundColor Yellow
-    python -m venv $VenvPath
+  Write-Host "📦 Creating virtual environment..." -ForegroundColor Yellow
+  python -m venv $VenvPath
 }
 
 # Activate venv
@@ -27,7 +27,7 @@ if (-not (Test-Path $VenvPath)) {
 
 # Install dependencies
 Write-Host "📥 Installing dependencies..." -ForegroundColor Yellow
-pip install -q flask flask-sqlalchemy gunicorn apscheduler requests pytz
+pip install -q flask flask-sqlalchemy flask-migrate gunicorn apscheduler requests pytz
 
 # Generate demo data
 Write-Host "🔧 Generating demo data..." -ForegroundColor Yellow

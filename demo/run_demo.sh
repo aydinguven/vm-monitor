@@ -27,7 +27,7 @@ source "$SCRIPT_DIR/venv/bin/activate"
 
 # Install dependencies
 echo "📥 Installing dependencies..."
-pip install -q flask flask-sqlalchemy gunicorn apscheduler requests pytz
+pip install -q flask flask-sqlalchemy flask-migrate gunicorn apscheduler requests pytz
 
 # Generate demo data
 echo "🔧 Generating demo data..."
