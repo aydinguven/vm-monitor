@@ -70,6 +70,7 @@ Most monitoring tools show you what's happening. VM Monitor lets you **do someth
 
 - 📱 **Reboot a frozen VM from your phone** - save time not SSH'ing from a terminal
 - 🔧 **Restart services remotely** - don't SSH into 10 servers
+- 🩹 **Patch OS from one place** - see pending updates, apply them with one click
 - 📲 **Get SMS when it matters** - built-in Twilio, no config hell (more integrations on the way)
 - ⚡ **2-minute setup** - one script, done
 - 🔒 **Self-hosted only** - your data never leaves your network
@@ -136,6 +137,7 @@ Execute white-listed diagnostic tools from the dashboard:
 - **Diagnostics**: Ping, Disk Space, Uptime, Memory Info
 - **Services**: View/Restart systemd or Windows services
 - **System**: Reboot VM, Install updates
+- **OS Patching**: See pending updates count per VM, trigger system updates with one click
 
 ![Diagnostic Tools & Disk Usage](docs/images/disk_usage.png)
 
