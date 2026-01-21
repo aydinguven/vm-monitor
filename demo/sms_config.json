@@ -1,0 +1,9 @@
+{
+    "provider": "disabled",
+    "recipient": "",
+    "dashboard_url": "http://localhost:5000",
+    "schedule": {
+        "enabled": false,
+        "times": []
+    }
+}

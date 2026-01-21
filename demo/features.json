@@ -1,0 +1,8 @@
+{
+    "commands": true,
+    "sms": false,
+    "alerts": true,
+    "containers": true,
+    "pods": true,
+    "auto_update": false
+}

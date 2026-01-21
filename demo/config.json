@@ -1,0 +1,7 @@
+{
+    "secret_key": "demo-secret-key-not-for-production",
+    "api_key": "demo-api-key",
+    "database_url": "sqlite:///demo_db.sqlite",
+    "timezone": "UTC",
+    "metric_retention_hours": 168
+}
