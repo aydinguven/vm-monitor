@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.47 (2026-01-21)
+- **Feature**: Demo Mode - run a fully functional demo with fake data.
+- **Demo**: Live demo at [monitordemo.aydin.cloud](https://monitordemo.aydin.cloud).
+- **Demo**: Includes data simulator to keep VMs "online" with varying metrics.
+- **Demo**: Demo banner injected without modifying production code.
+- **Docs**: Improved README with "Control vs Visibility" positioning.
+- **Docs**: Added CONTRIBUTING.md for first-time contributors.
+- **Docs**: Expanded Feature Flags documentation.
+
 ## v1.46.1 (2026-01-21)
 - **Fix**: `update_dashboard.sh` now copies agent files to `static/downloads/` for auto-update.
 - **Fix**: Agent version API now returns correct version after dashboard updates.

@@ -7,8 +7,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.6+](https://img.shields.io/badge/Python-3.6+-green.svg)](https://python.org)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey.svg)](#multi-platform-agent)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-monitordemo.aydin.cloud-blueviolet.svg)](https://monitordemo.aydin.cloud)
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Why VM Monitor?](#-why-vm-monitor) • [Documentation](#-configuration)
+[Features](#-features) • [Quick Start](#-quick-start) • [Why VM Monitor?](#-why-vm-monitor) • [Live Demo](https://monitordemo.aydin.cloud)
 
 ---
 
