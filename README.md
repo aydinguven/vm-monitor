@@ -32,6 +32,10 @@ You have VMs scattered across AWS, GCP, Oracle Cloud, and your homelab. You want
 
 VM Monitor is a **single Python file** agent + **single Flask app** dashboard. Install in 2 minutes, monitor and manage forever.
 
+- **Monitor**: CPU, RAM, Disk, Swap, Network I/O, containers, pods—all in real-time
+- **Manage**: Restart services, reboot VMs, patch OS, kill runaway processes—all from your browser
+- **Alert**: SMS notifications when thresholds breach, scheduled or on-demand
+
 > **Platform-Agnostic**: Runs anywhere Python runs. No compiled binaries, no OS-specific dependencies. Pre-built wheels included for offline installation.
 
 ![Dashboard Overview](docs/images/dashboard_overview.png)
