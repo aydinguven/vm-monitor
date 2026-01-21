@@ -310,6 +310,12 @@ vm-monitor/
 ## ❓ FAQ
 
 <details>
+<summary><strong>Why did you build this?</strong></summary>
+
+I manage VMs scattered across multiple environments—Proxmox homelab, AWS, GCP, Oracle Cloud—and I wanted real-time visibility into all of them without deploying a complex monitoring stack or paying for enterprise tools. So I built VM Monitor: one Python agent + one Flask dashboard = done.
+</details>
+
+<details>
 <summary><strong>How much resources does the agent use?</strong></summary>
 
 The agent uses ~15MB RAM and minimal CPU. It's designed to be invisible.

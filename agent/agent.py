@@ -35,7 +35,7 @@ if not IS_WINDOWS:
 # Configuration
 # =============================================================================
 
-AGENT_VERSION = "1.46"
+AGENT_VERSION = "1.47"
 STRESS_DURATION = 75  # Duration in seconds for stress tests
 
 # Config loader
