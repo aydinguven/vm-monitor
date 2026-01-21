@@ -3,5 +3,6 @@
     "api_key": "demo-api-key",
     "database_url": "sqlite:///demo_db.sqlite",
     "timezone": "UTC",
+    "demo_mode": true,
     "metric_retention_hours": 168
 }

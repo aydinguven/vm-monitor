@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run VM Monitor Demo
-# This creates a demo database and launches the dashboard
+# This creates a demo database and launches the dashboard with demo mode
 
 set -e
 
@@ -29,9 +29,11 @@ source "$SCRIPT_DIR/venv/bin/activate"
 echo "📥 Installing dependencies..."
 pip install -q flask flask-sqlalchemy flask-migrate gunicorn apscheduler requests pytz
 
-# Generate demo data
-echo "🔧 Generating demo data..."
-python "$SCRIPT_DIR/generate_demo_data.py"
+# Generate demo data if needed
+if [ ! -f "$SCRIPT_DIR/demo_db.sqlite" ]; then
+    echo "🔧 Generating demo data..."
+    python "$SCRIPT_DIR/generate_demo_data.py"
+fi
 
 # Copy config files to instance dir
 mkdir -p "$PROJECT_ROOT/dashboard/instance"
@@ -39,15 +41,15 @@ cp "$SCRIPT_DIR/config.json" "$PROJECT_ROOT/dashboard/instance/"
 cp "$SCRIPT_DIR/features.json" "$PROJECT_ROOT/dashboard/instance/"
 cp "$SCRIPT_DIR/sms_config.json" "$PROJECT_ROOT/dashboard/instance/"
 
-# Copy demo database
+# Copy demo database with absolute path config
 cp "$SCRIPT_DIR/demo_db.sqlite" "$PROJECT_ROOT/dashboard/instance/"
 
-# Update database URL in config to point to instance dir
+# Update database URL to absolute path
 cat > "$PROJECT_ROOT/dashboard/instance/config.json" <<EOF
 {
   "secret_key": "demo-secret-key-not-for-production",
   "api_key": "demo-api-key",
-  "database_url": "sqlite:///instance/demo_db.sqlite",
+  "database_url": "sqlite:///$PROJECT_ROOT/dashboard/instance/demo_db.sqlite",
   "timezone": "UTC"
 }
 EOF
@@ -56,20 +58,41 @@ echo ""
 echo "✅ Demo ready!"
 echo ""
 
-# Kill any existing demo
-pkill -f "gunicorn.*demo_db" 2>/dev/null || true
+# Kill any existing demo processes
+pkill -f "gunicorn.*demo_app" 2>/dev/null || true
+pkill -f "simulate_data.py" 2>/dev/null || true
+sleep 1
 
-# Run with gunicorn in background
-cd "$PROJECT_ROOT/dashboard"
-gunicorn -w 2 -b 0.0.0.0:5000 app:app \
+# Start data simulator in background
+echo "🔄 Starting data simulator..."
+python "$SCRIPT_DIR/simulate_data.py" > "$SCRIPT_DIR/simulator.log" 2>&1 &
+SIMULATOR_PID=$!
+echo $SIMULATOR_PID > "$SCRIPT_DIR/simulator.pid"
+
+# Run demo app with gunicorn in background
+echo "🌐 Starting demo dashboard..."
+cd "$SCRIPT_DIR"
+gunicorn -w 2 -b 0.0.0.0:5000 demo_app:app \
     --daemon \
     --pid "$SCRIPT_DIR/demo.pid" \
     --access-logfile "$SCRIPT_DIR/access.log" \
     --error-logfile "$SCRIPT_DIR/error.log"
 
-echo "📌 Dashboard running at: http://localhost:5000"
-echo ""
-echo "   Logs: $SCRIPT_DIR/access.log"
-echo "   PID:  $(cat $SCRIPT_DIR/demo.pid)"
-echo ""
-echo "   To stop: kill \$(cat $SCRIPT_DIR/demo.pid)"
+sleep 2  # Wait for gunicorn to start
+
+if [ -f "$SCRIPT_DIR/demo.pid" ]; then
+    echo ""
+    echo "📌 Dashboard running at: http://localhost:5000"
+    echo ""
+    echo "   Dashboard PID: $(cat $SCRIPT_DIR/demo.pid)"
+    echo "   Simulator PID: $SIMULATOR_PID"
+    echo ""
+    echo "   Logs:"
+    echo "     - $SCRIPT_DIR/access.log"
+    echo "     - $SCRIPT_DIR/error.log"
+    echo "     - $SCRIPT_DIR/simulator.log"
+    echo ""
+    echo "   To stop: $SCRIPT_DIR/stop_demo.sh"
+else
+    echo "❌ Failed to start. Check $SCRIPT_DIR/error.log"
+fi
