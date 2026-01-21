@@ -55,10 +55,21 @@ EOF
 echo ""
 echo "✅ Demo ready!"
 echo ""
-echo "📌 Starting dashboard at: http://localhost:5000"
-echo "   Press Ctrl+C to stop"
-echo ""
 
-# Run dashboard
+# Kill any existing demo
+pkill -f "gunicorn.*demo_db" 2>/dev/null || true
+
+# Run with gunicorn in background
 cd "$PROJECT_ROOT/dashboard"
-python app.py
+gunicorn -w 2 -b 0.0.0.0:5000 app:app \
+    --daemon \
+    --pid "$SCRIPT_DIR/demo.pid" \
+    --access-logfile "$SCRIPT_DIR/access.log" \
+    --error-logfile "$SCRIPT_DIR/error.log"
+
+echo "📌 Dashboard running at: http://localhost:5000"
+echo ""
+echo "   Logs: $SCRIPT_DIR/access.log"
+echo "   PID:  $(cat $SCRIPT_DIR/demo.pid)"
+echo ""
+echo "   To stop: kill \$(cat $SCRIPT_DIR/demo.pid)"
