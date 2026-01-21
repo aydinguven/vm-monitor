@@ -367,6 +367,8 @@ Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 **Built with ❤️ by [Aydin Aslangoren](https://github.com/aydinguven)**
 
+*This project uses AI-assisted development. All design decisions, testing, and code review are done by a human.*
+
 ⭐ Star this repo if you find it useful!
 
 </div>
