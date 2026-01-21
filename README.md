@@ -30,7 +30,7 @@ You have VMs scattered across AWS, GCP, Oracle Cloud, and your homelab. You want
 
 ## ✅ The Solution
 
-VM Monitor is a **single Python file** agent + **single Flask app** dashboard. Install in 2 minutes, monitor forever.
+VM Monitor is a **single Python file** agent + **single Flask app** dashboard. Install in 2 minutes, monitor and manage forever.
 
 > **Platform-Agnostic**: Runs anywhere Python runs. No compiled binaries, no OS-specific dependencies. Pre-built wheels included for offline installation.
 
