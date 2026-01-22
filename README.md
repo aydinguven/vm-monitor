@@ -64,6 +64,11 @@ cd vm-monitor && ./scripts/setup.sh
 
 **That's it.** Your VM will appear in the dashboard within 30 seconds.
 
+I even made the installers interactive, so it deploys with minimal technical knowledge.
+
+![Installer Wizard](docs/images/installer_wizard.png.png)
+
+
 ---
 
 ## 🔥 Why VM Monitor?
