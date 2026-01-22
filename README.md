@@ -66,7 +66,7 @@ cd vm-monitor && ./scripts/setup.sh
 
 I even made the installers interactive, so it deploys with minimal technical knowledge.
 
-![Installer Wizard](docs/images/installer_wizard.png.png)
+![Installer Wizard](docs/images/installer_wizard.png)
 
 
 ---
