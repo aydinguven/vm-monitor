@@ -181,9 +181,6 @@ def generate_demo_db(db_path: str):
                 ip_external=f"203.0.113.{random.randint(1, 254)}",
                 uptime_seconds=random.randint(86400, 86400 * 30),
                 agent_version="1.49",
-                latency_ms=vm_config.get("latency_ms", random.uniform(10, 80)),
-                http_rtt_ms=vm_config.get("latency_ms", random.uniform(50, 250)) + random.uniform(20, 100),
-                latency_updated_at=now,
                 containers=vm_config.get("containers", []),
                 pods=vm_config.get("pods", []),
                 swap_percent=random.uniform(0, 20),
@@ -200,6 +197,10 @@ def generate_demo_db(db_path: str):
                     {"name": "nginx", "pid": 5678, "cpu": random.uniform(0.5, 5), "ram": random.uniform(0.5, 3)},
                     {"name": "node", "pid": 9012, "cpu": random.uniform(0.5, 8), "ram": random.uniform(1, 5)},
                 ],
+                # v1.49 - Latency (simulated)
+                latency_ms=random.uniform(5, 250),
+                http_rtt_ms=random.uniform(50, 400),
+                latency_updated_at=now - timedelta(seconds=random.randint(5, 60)),
             )
             db.session.add(vm)
             db.session.flush()  # Get the ID
