@@ -1,0 +1,15 @@
+# Exclude build artifacts and static assets from language stats
+dist/** linguist-vendored
+**/static/** linguist-vendored
+dashboard/static/** linguist-vendored
+
+# Treat minified files as vendored
+*.min.js linguist-vendored
+*.min.css linguist-vendored
+
+# Ensure Python is detected
+*.py linguist-detectable=true
+
+# Mark documentation
+*.md linguist-documentation
+docs/** linguist-documentation
