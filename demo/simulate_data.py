@@ -61,6 +61,15 @@ def simulate_metrics():
                 vm.ram_percent = max(0, min(100, (vm.ram_percent or 50) + ram_variation))
                 vm.ram_used_gb = vm.ram_total_gb * (vm.ram_percent / 100) if vm.ram_total_gb else 0
                 
+                # Vary latency slightly (+/- 5ms for ping, +/- 20ms for HTTP)
+                if vm.latency_ms:
+                    latency_variation = random.uniform(-5, 5)
+                    vm.latency_ms = max(1, vm.latency_ms + latency_variation)
+                if vm.http_rtt_ms:
+                    http_variation = random.uniform(-20, 20)
+                    vm.http_rtt_ms = max(10, vm.http_rtt_ms + http_variation)
+                vm.latency_updated_at = now
+                
                 # Add new metric point
                 metric = Metric(
                     vm_id=vm.id,
