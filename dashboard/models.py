@@ -57,6 +57,10 @@ class VM(db.Model):
     # v1.20 - Processes
     top_processes = db.Column(db.JSON)        # [{"name": "python", "cpu": 15.2, "ram": 8.5}]
     
+    # v1.48 - Latency (dashboard-side ping)
+    latency_ms = db.Column(db.Float)          # Ping latency in milliseconds (None = not measured)
+    latency_updated_at = db.Column(db.DateTime)  # When latency was last updated
+    
     # Relationship to metrics history
     metrics = db.relationship("Metric", backref="vm", lazy="dynamic", cascade="all, delete-orphan")
     
@@ -99,7 +103,10 @@ class VM(db.Model):
             "pending_updates": self.pending_updates or 0,
             "open_ports": self.open_ports or [],
             "ssh_failed_attempts": self.ssh_failed_attempts or 0,
-            "top_processes": self.top_processes or []
+            "top_processes": self.top_processes or [],
+            # v1.48 - Latency
+            "latency_ms": self.latency_ms,
+            "latency_updated_at": self.latency_updated_at.isoformat() if self.latency_updated_at else None
         }
     
     def to_list_dict(self):
@@ -124,6 +131,8 @@ class VM(db.Model):
             "os_name": self.os_name,
             "agent_version": self.agent_version,
             "pending_updates": self.pending_updates or 0,
+            # v1.48 - Latency
+            "latency_ms": self.latency_ms,
         }
 
 

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.48 (2026-01-24)
+- **Feature**: Dashboard-side latency monitoring via ICMP ping.
+- **Feature**: New `latency` feature flag (disabled by default).
+- **UI**: VM cards show color-coded ping latency (green <50ms, yellow 50-150ms, red >150ms).
+- **Backend**: Background pinger runs every 5 seconds when enabled.
+
 ## v1.47 (2026-01-21)
 - **Feature**: Demo Mode - run a fully functional demo with fake data.
 - **Demo**: Live demo at [monitordemo.aydin.cloud](https://monitordemo.aydin.cloud).
