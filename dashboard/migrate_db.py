@@ -50,6 +50,7 @@ EXPECTED_SCHEMA = {
         ("top_processes", "JSON", None),
         # v1.48 - Latency
         ("latency_ms", "FLOAT", None),
+        ("http_rtt_ms", "FLOAT", None),
         ("latency_updated_at", "DATETIME", None),
     ],
     "metrics": [

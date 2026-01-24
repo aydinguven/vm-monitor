@@ -420,6 +420,8 @@ def receive_metrics():
     if "latency_ms" in data:
         vm.latency_ms = data["latency_ms"]
         vm.latency_updated_at = datetime.utcnow()
+    if "http_rtt_ms" in data:
+        vm.http_rtt_ms = data["http_rtt_ms"]
     
     # Store historical metric
     metric = Metric(
