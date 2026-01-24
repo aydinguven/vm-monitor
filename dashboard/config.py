@@ -96,6 +96,7 @@ def is_feature_enabled(feature: str, default: bool = True) -> bool:
     - containers: Container discovery
     - pods: Kubernetes pod discovery
     - auto_update: Agent auto-updates
+    - latency: Dashboard-side latency monitoring via ICMP ping
     """
     features = _load_features()
     
@@ -120,4 +121,5 @@ FEATURE_ALERTS = is_feature_enabled("alerts", True)
 FEATURE_CONTAINERS = is_feature_enabled("containers", True)
 FEATURE_PODS = is_feature_enabled("pods", True)
 FEATURE_AUTO_UPDATE = is_feature_enabled("auto_update", True)
+FEATURE_LATENCY = is_feature_enabled("latency", False)  # v1.48 - Disabled by default
 

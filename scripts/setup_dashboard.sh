@@ -210,7 +210,8 @@ install_dashboard() {
     "alerts": $FEATURE_ALERTS,
     "containers": $FEATURE_CONTAINERS,
     "pods": $FEATURE_PODS,
-    "auto_update": true
+    "auto_update": true,
+    "latency": false
 }
 EOF
     

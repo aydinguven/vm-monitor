@@ -4,5 +4,6 @@
     "alerts": true,
     "containers": true,
     "pods": true,
-    "auto_update": false
+    "auto_update": false,
+    "latency": false
 }

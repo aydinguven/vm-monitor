@@ -48,6 +48,9 @@ EXPECTED_SCHEMA = {
         ("open_ports", "JSON", None),
         ("ssh_failed_attempts", "INTEGER", "0"),
         ("top_processes", "JSON", None),
+        # v1.48 - Latency
+        ("latency_ms", "FLOAT", None),
+        ("latency_updated_at", "DATETIME", None),
     ],
     "metrics": [
         ("id", "INTEGER PRIMARY KEY", None),
