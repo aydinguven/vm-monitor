@@ -53,6 +53,7 @@ cd vm-monitor && ./scripts/setup_dashboard.sh
 
 ### 2. Install Agent on VMs (1 min each)
 
+**Linux:**
 ```bash
 # One-liner install from your dashboard:
 bash <(curl -sL https://your-dashboard/static/scripts/setup.sh)
@@ -60,6 +61,13 @@ bash <(curl -sL https://your-dashboard/static/scripts/setup.sh)
 # Or clone and run:
 git clone https://github.com/aydinguven/vm-monitor.git
 cd vm-monitor && ./scripts/setup.sh
+```
+
+**Windows (PowerShell as Admin):**
+```powershell
+# Download and run installer
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/aydinguven/vm-monitor/main/agent/setup.ps1" -OutFile setup.ps1
+.\setup.ps1
 ```
 
 **That's it.** Your VM will appear in the dashboard within 30 seconds.
