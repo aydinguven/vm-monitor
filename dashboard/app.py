@@ -221,8 +221,9 @@ for hour, minute in sms_times:
 import subprocess
 import platform
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Optional
 
-def ping_host(ip: str, timeout: int = 2) -> float | None:
+def ping_host(ip: str, timeout: int = 2) -> Optional[float]:
     """
     Ping a host and return latency in ms, or None if unreachable.
     Cross-platform: works on Windows and Linux/macOS.
