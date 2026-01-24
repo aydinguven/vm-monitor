@@ -116,12 +116,23 @@
 
         <div class="version-card">
             <div class="version-header">
-                <div class="version-title">v1.48 <span class="badge current">Latest</span></div>
+                <div class="version-title">v1.49 <span class="badge current">Latest</span></div>
+                <span class="version-date">Jan 24, 2026</span>
+            </div>
+            <ul>
+                <li><strong>Latency:</strong> ICMP ping + HTTP RTT tracking with tolerant thresholds.</li>
+                <li><strong>Docs:</strong> Added Windows agent installation to README.</li>
+            </ul>
+        </div>
+
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title">v1.48</div>
                 <span class="version-date">Jan 24, 2026</span>
             </div>
             <ul>
                 <li><strong>Latency Monitoring:</strong> Agent-side HTTP RTT latency shown on VM cards.</li>
-                <li><strong>UI:</strong> Color-coded latency display (green &lt;50ms, yellow 50-150ms, red &gt;150ms).
+                <li><strong>UI:</strong> Color-coded latency display (green &lt;100ms, yellow 100-300ms, red &gt;300ms).
                 </li>
                 <li><strong>Agent:</strong> Agent now measures POST request time and reports it with metrics.</li>
             </ul>
