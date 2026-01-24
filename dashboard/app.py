@@ -303,15 +303,13 @@ def ping_all_vms():
         app.logger.debug(f"Latency check completed for {len(results)} VMs")
 
 
-# Add latency job if feature is enabled at startup
-from config import is_feature_enabled
-if is_feature_enabled("latency", False):
-    scheduler.add_job(
-        func=ping_all_vms,
-        trigger="interval",
-        seconds=5,
-        id="latency_ping"
-    )
+# Add latency job - always register, the function checks the flag inside for hot-reload
+scheduler.add_job(
+    func=ping_all_vms,
+    trigger="interval",
+    seconds=5,
+    id="latency_ping"
+)
 
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown())
