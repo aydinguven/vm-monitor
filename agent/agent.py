@@ -1094,9 +1094,20 @@ def collect_metrics() -> dict:
     }
 
 
+# v1.48 - Track latency for next push (we measure current request, send in next payload)
+_last_latency_ms = None
+
+
 def push_metrics(metrics: dict) -> bool:
     """Push metrics to the central server."""
+    global _last_latency_ms
+    
+    # Include previous request's latency in payload (v1.48)
+    if _last_latency_ms is not None:
+        metrics["latency_ms"] = _last_latency_ms
+    
     try:
+        start_time = time.time()
         response = requests.post(
             f"{SERVER_URL}/api/metrics",
             json=metrics,
@@ -1106,9 +1117,13 @@ def push_metrics(metrics: dict) -> bool:
             },
             timeout=10
         )
+        end_time = time.time()
+        
+        # Store latency for next push (in milliseconds)
+        _last_latency_ms = round((end_time - start_time) * 1000, 2)
         
         if response.status_code == 200:
-            logger.debug("Metrics pushed successfully")
+            logger.debug(f"Metrics pushed successfully (latency: {_last_latency_ms}ms)")
             
             # v1.22 - Process queued commands
             try:
@@ -1126,6 +1141,7 @@ def push_metrics(metrics: dict) -> bool:
             
     except requests.RequestException as e:
         logger.error(f"Failed to push metrics: {e}")
+        _last_latency_ms = None  # Reset on failure
         return False
 
 

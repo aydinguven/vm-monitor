@@ -206,7 +206,6 @@ Control what's enabled on the dashboard:
 | `containers` | `true` | Docker/Podman container discovery |
 | `pods` | `true` | Kubernetes pod discovery |
 | `auto_update` | `true` | Allow agents to auto-update from dashboard |
-| `latency` | `false` | Dashboard-side ICMP ping for network latency |
 
 > **Note**: These are **dashboard-side** flags. Agent features are configured during installation.
 

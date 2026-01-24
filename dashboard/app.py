@@ -216,101 +216,6 @@ for hour, minute in sms_times:
         id=f"sms_alert_{hour:02d}{minute:02d}"
     )
 
-
-# v1.48 - Latency Monitoring
-import subprocess
-import platform
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Optional
-
-def ping_host(ip: str, timeout: int = 2) -> Optional[float]:
-    """
-    Ping a host and return latency in ms, or None if unreachable.
-    Cross-platform: works on Windows and Linux/macOS.
-    """
-    if not ip:
-        return None
-    
-    try:
-        # Platform-specific ping command
-        if platform.system().lower() == "windows":
-            # Windows: ping -n 1 -w <timeout_ms>
-            cmd = ["ping", "-n", "1", "-w", str(timeout * 1000), ip]
-        else:
-            # Linux/macOS: ping -c 1 -W <timeout_s>
-            cmd = ["ping", "-c", "1", "-W", str(timeout), ip]
-        
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 1)
-        
-        if result.returncode == 0:
-            # Parse latency from output
-            output = result.stdout
-            # Windows: "time=12ms" or "time<1ms"
-            # Linux: "time=12.3 ms"
-            import re
-            match = re.search(r"time[=<](\d+\.?\d*)\s*ms", output, re.IGNORECASE)
-            if match:
-                return float(match.group(1))
-        return None
-    except (subprocess.TimeoutExpired, Exception):
-        return None
-
-
-def ping_all_vms():
-    """Background job to ping all VMs and update latency."""
-    from config import is_feature_enabled
-    
-    # Check feature flag (hot-reload)
-    if not is_feature_enabled("latency", False):
-        return  # Latency feature disabled
-    
-    with app.app_context():
-        # Get all VMs with an IP address
-        vms = VM.query.filter(
-            (VM.ip_internal.isnot(None)) | (VM.ip_external.isnot(None))
-        ).all()
-        
-        if not vms:
-            return
-        
-        # Build list of (vm_id, ip) tuples - prefer internal IP
-        vm_ips = []
-        for vm in vms:
-            ip = vm.ip_internal or vm.ip_external
-            if ip:
-                vm_ips.append((vm.id, ip))
-        
-        # Parallel ping with ThreadPoolExecutor
-        results = {}
-        with ThreadPoolExecutor(max_workers=min(20, len(vm_ips))) as executor:
-            future_to_vm = {executor.submit(ping_host, ip): vm_id for vm_id, ip in vm_ips}
-            for future in as_completed(future_to_vm):
-                vm_id = future_to_vm[future]
-                try:
-                    results[vm_id] = future.result()
-                except Exception:
-                    results[vm_id] = None
-        
-        # Update database
-        now = datetime.utcnow()
-        for vm_id, latency in results.items():
-            VM.query.filter_by(id=vm_id).update({
-                "latency_ms": latency,
-                "latency_updated_at": now
-            })
-        
-        db.session.commit()
-        app.logger.debug(f"Latency check completed for {len(results)} VMs")
-
-
-# Add latency job - always register, the function checks the flag inside for hot-reload
-scheduler.add_job(
-    func=ping_all_vms,
-    trigger="interval",
-    seconds=5,
-    id="latency_ping"
-)
-
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown())
 
@@ -510,6 +415,11 @@ def receive_metrics():
     vm.open_ports = data.get("open_ports", [])
     vm.ssh_failed_attempts = data.get("ssh_failed_attempts", 0)
     vm.top_processes = data.get("top_processes", [])
+    
+    # v1.48 - Agent-side latency (HTTP RTT)
+    if "latency_ms" in data:
+        vm.latency_ms = data["latency_ms"]
+        vm.latency_updated_at = datetime.utcnow()
     
     # Store historical metric
     metric = Metric(
