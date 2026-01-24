@@ -3,9 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## v1.48 (2026-01-24)
-- **Feature**: Agent-side latency monitoring (HTTP RTT to dashboard).
-- **UI**: VM cards show color-coded ping latency (green <50ms, yellow 50-150ms, red >150ms).
-- **Agent**: Agent now measures POST request latency and reports it with each metric push.
+- **Feature**: Agent-side latency monitoring - ICMP ping + HTTP RTT.
+- **UI**: VM cards show color-coded ping latency (green <100ms, yellow 100-300ms, red >300ms).
+- **Agent**: Agent now measures ICMP ping and HTTP POST time, reports both with metrics.
 
 ## v1.47 (2026-01-21)
 - **Feature**: Demo Mode - run a fully functional demo with fake data.

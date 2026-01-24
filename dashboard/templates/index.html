@@ -864,10 +864,10 @@
             if (latency_ms === null || latency_ms === undefined) {
                 return '';  // No latency data - don't show anything
             }
-            // Color based on latency: green <50ms, yellow 50-150ms, red >150ms
+            // Color based on latency: green <100ms, yellow 100-300ms, red >300ms
             let color = '#22c55e';  // green
-            if (latency_ms >= 150) color = '#ef4444';  // red
-            else if (latency_ms >= 50) color = '#f59e0b';  // yellow
+            if (latency_ms >= 300) color = '#ef4444';  // red
+            else if (latency_ms >= 100) color = '#f59e0b';  // yellow
 
             return ` • <span style="color:${color}">${latency_ms.toFixed(0)}ms</span>`;
         }

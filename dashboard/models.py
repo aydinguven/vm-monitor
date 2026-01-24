@@ -57,8 +57,9 @@ class VM(db.Model):
     # v1.20 - Processes
     top_processes = db.Column(db.JSON)        # [{"name": "python", "cpu": 15.2, "ram": 8.5}]
     
-    # v1.48 - Latency (dashboard-side ping)
-    latency_ms = db.Column(db.Float)          # Ping latency in milliseconds (None = not measured)
+    # v1.48 - Latency (agent-side)
+    latency_ms = db.Column(db.Float)          # ICMP ping latency in milliseconds
+    http_rtt_ms = db.Column(db.Float)         # HTTP POST round-trip time in milliseconds
     latency_updated_at = db.Column(db.DateTime)  # When latency was last updated
     
     # Relationship to metrics history
@@ -106,6 +107,7 @@ class VM(db.Model):
             "top_processes": self.top_processes or [],
             # v1.48 - Latency
             "latency_ms": self.latency_ms,
+            "http_rtt_ms": self.http_rtt_ms,
             "latency_updated_at": self.latency_updated_at.isoformat() if self.latency_updated_at else None
         }
     
