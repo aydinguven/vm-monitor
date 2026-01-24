@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.49 (2026-01-24)
+- **Feature**: ICMP ping latency + HTTP RTT (both metrics tracked).
+- **UI**: More tolerant color thresholds (green <100ms, yellow 100-300ms, red >300ms).
+- **Docs**: Added Windows agent installation to README.
+
 ## v1.48 (2026-01-24)
 - **Feature**: Agent-side latency monitoring - ICMP ping + HTTP RTT.
 - **UI**: VM cards show color-coded ping latency (green <100ms, yellow 100-300ms, red >300ms).
