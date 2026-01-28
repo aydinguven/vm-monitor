@@ -47,34 +47,34 @@ echo -e "${GREEN}🧹 Removing VM Dashboard...${NC}"
 
 # Stop and disable service
 echo -e "  ${CYAN}Stopping service...${NC}"
-if systemctl is-active --quiet vm-agent-dashboard 2>/dev/null; then
-    sudo systemctl stop vm-agent-dashboard
+if systemctl is-active --quiet vm-monitor 2>/dev/null; then
+    sudo systemctl stop vm-monitor
 fi
-if systemctl is-enabled --quiet vm-agent-dashboard 2>/dev/null; then
-    sudo systemctl disable vm-agent-dashboard
+if systemctl is-enabled --quiet vm-monitor 2>/dev/null; then
+    sudo systemctl disable vm-monitor
 fi
 
 # Kill any remaining gunicorn processes
 sudo pkill -9 -f "gunicorn.*app:app" 2>/dev/null || true
 
 # Remove service file
-if [ -f "/etc/systemd/system/vm-agent-dashboard.service" ]; then
+if [ -f "/etc/systemd/system/vm-monitor.service" ]; then
     echo -e "  ${CYAN}Removing service file...${NC}"
-    sudo rm -f /etc/systemd/system/vm-agent-dashboard.service
+    sudo rm -f /etc/systemd/system/vm-monitor.service
 fi
 
 # Remove application files
 echo -e "  ${CYAN}Removing application files...${NC}"
-sudo rm -rf /opt/vm-agent-dashboard
+sudo rm -rf /opt/vm-monitor
 sudo rm -f /etc/vm-dashboard.env
 
 # Remove user
-if id "vm-agent" &>/dev/null; then
-    echo -e "  ${CYAN}Removing vm-agent user...${NC}"
-    sudo userdel vm-agent 2>/dev/null || true
+if id "vm-monitor" &>/dev/null; then
+    echo -e "  ${CYAN}Removing vm-monitor user...${NC}"
+    sudo userdel vm-monitor 2>/dev/null || true
 fi
-if getent group vm-agent >/dev/null; then
-    sudo groupdel vm-agent 2>/dev/null || true
+if getent group vm-monitor >/dev/null; then
+    sudo groupdel vm-monitor 2>/dev/null || true
 fi
 
 # Reload systemd

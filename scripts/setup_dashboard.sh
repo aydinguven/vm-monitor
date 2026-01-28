@@ -14,7 +14,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 # Defaults
-INSTALL_DIR="/opt/vm-agent-dashboard"
+INSTALL_DIR="/opt/vm-monitor"
 PORT=5000
 API_KEY=""
 SECRET_KEY=""
@@ -169,12 +169,12 @@ install_dashboard() {
     fi
     
     # 2. Create user
-    echo -e "${BLUE}[2/6] Creating vm-agent user...${NC}"
-    if ! getent group vm-agent >/dev/null; then
-        sudo groupadd -r vm-agent
+    echo -e "${BLUE}[2/6] Creating vm-monitor user...${NC}"
+    if ! getent group vm-monitor >/dev/null; then
+        sudo groupadd -r vm-monitor
     fi
-    if ! id "vm-agent" &>/dev/null; then
-        sudo useradd -r -g vm-agent -d "$INSTALL_DIR" -s /sbin/nologin vm-agent
+    if ! id "vm-monitor" &>/dev/null; then
+        sudo useradd -r -g vm-monitor -d "$INSTALL_DIR" -s /sbin/nologin vm-monitor
     fi
     
     # 3. Setup directories
@@ -241,7 +241,7 @@ with app.app_context():
     
     # Set ownership
     # Set ownership and permissions (Hardened)
-    sudo chown -R vm-agent:vm-agent "$INSTALL_DIR"
+    sudo chown -R vm-monitor:vm-monitor "$INSTALL_DIR"
     
     # 750: User rwx, Group rx, Other -
     # 640: User rw, Group r, Other -
@@ -257,15 +257,15 @@ with app.app_context():
     
     # 7. Setup systemd service
     echo -e "${BLUE}[7/7] Configuring systemd service...${NC}"
-    sudo bash -c "cat > /etc/systemd/system/vm-agent-dashboard.service" <<EOF
+    sudo bash -c "cat > /etc/systemd/system/vm-monitor.service" <<EOF
 [Unit]
 Description=VM Monitoring Dashboard
 After=network.target
 
 [Service]
 Type=simple
-User=vm-agent
-Group=vm-agent
+User=vm-monitor
+Group=vm-monitor
 WorkingDirectory=$INSTALL_DIR
 ExecStart=$INSTALL_DIR/venv/bin/gunicorn -w 4 -b 0.0.0.0:$PORT app:app
 Restart=always
@@ -275,8 +275,8 @@ WantedBy=multi-user.target
 EOF
     
     sudo systemctl daemon-reload
-    sudo systemctl enable vm-agent-dashboard
-    sudo systemctl restart vm-agent-dashboard
+    sudo systemctl enable vm-monitor
+    sudo systemctl restart vm-monitor
     
     echo ""
     echo -e "${GREEN}╔═══════════════════════════════════════════════════════════╗${NC}"
@@ -289,8 +289,8 @@ EOF
     echo ""
     echo -e "${YELLOW}Use this API Key when setting up agents!${NC}"
     echo ""
-    echo -e "  Service:    ${CYAN}sudo systemctl status vm-agent-dashboard${NC}"
-    echo -e "  Logs:       ${CYAN}sudo journalctl -u vm-agent-dashboard -f${NC}"
+    echo -e "  Service:    ${CYAN}sudo systemctl status vm-monitor${NC}"
+    echo -e "  Logs:       ${CYAN}sudo journalctl -u vm-monitor -f${NC}"
     echo ""
 }
 

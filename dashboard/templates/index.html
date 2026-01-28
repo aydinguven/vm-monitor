@@ -558,6 +558,7 @@
             <div class="header-controls">
                 <button class="btn mobile-filter-btn" onclick="openMobileFilters()">🔍 Filters</button>
                 <button class="btn" id="send-sms-btn" onclick="sendSMS()">📱 Send SMS</button>
+                <button class="btn" id="send-telegram-btn" onclick="sendTelegram()">📨 Telegram</button>
                 <button class="btn" onclick="exportData('json')">📥 JSON</button>
                 <button class="btn" onclick="exportData('csv')">📥 CSV</button>
                 <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
@@ -1930,6 +1931,32 @@
             } catch (err) {
                 btn.textContent = '❌ Error';
                 alert('SMS error: ' + err.message);
+                setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+            }
+        }
+
+        // v1.50 - Send Telegram test notification
+        async function sendTelegram() {
+            const btn = document.getElementById('send-telegram-btn');
+            const originalText = btn.textContent;
+            btn.textContent = '⏳ Sending...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/send-telegram', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    btn.textContent = '✅ Sent!';
+                    setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 3000);
+                } else {
+                    btn.textContent = '❌ Failed';
+                    alert('Telegram failed: ' + (data.error || 'Unknown error'));
+                    setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
+                }
+            } catch (err) {
+                btn.textContent = '❌ Error';
+                alert('Telegram error: ' + err.message);
                 setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 2000);
             }
         }

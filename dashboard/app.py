@@ -238,6 +238,73 @@ def trigger_sms():
     return jsonify({"success": True, "message": f"SMS sent to {recipient}"})
 
 
+@app.route("/api/send-telegram", methods=["POST"])
+def trigger_telegram():
+    """Manually trigger Telegram test notification."""
+    from sms_config import get_sms_config
+    
+    provider = get_sms_config("provider", "")
+    
+    # Check if provider is telegram or relay
+    if provider == "telegram":
+        bot_token = get_sms_config("telegram.bot_token", "")
+        chat_id = get_sms_config("telegram.chat_id", "")
+        if not bot_token or not chat_id:
+            return jsonify({"success": False, "error": "Telegram not configured. Edit instance/sms_config.json"}), 400
+        
+        # Send test message
+        import requests
+        message = "🧪 Test notification from VM Monitor Dashboard"
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        try:
+            response = requests.post(url, json={
+                "chat_id": chat_id,
+                "text": message,
+                "parse_mode": "Markdown"
+            }, timeout=30)
+            result = response.json()
+            if result.get("ok"):
+                return jsonify({"success": True, "message": "Telegram message sent"})
+            else:
+                return jsonify({"success": False, "error": result.get("description", "Unknown error")}), 400
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 500
+    
+    elif provider == "relay":
+        relay_url = get_sms_config("relay.url", "")
+        relay_api_key = get_sms_config("relay.api_key", "")
+        if not relay_url or not relay_api_key:
+            return jsonify({"success": False, "error": "Relay not configured. Edit instance/sms_config.json"}), 400
+        
+        # Send via relay service
+        import requests
+        chat_ids = get_sms_config("relay.chat_ids", [])
+        if not chat_ids:
+            return jsonify({"success": False, "error": "No chat_ids configured for relay"}), 400
+        
+        try:
+            response = requests.post(
+                f"{relay_url}/send/batch",
+                json={
+                    "template": "test",
+                    "chat_ids": chat_ids,
+                    "variables": {}
+                },
+                headers={"X-API-Key": relay_api_key},
+                timeout=30
+            )
+            result = response.json()
+            if result.get("success"):
+                return jsonify({"success": True, "message": f"Sent to {result.get('successful', 0)} recipients"})
+            else:
+                return jsonify({"success": False, "error": result.get("error", "Unknown error")}), 400
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 500
+    
+    else:
+        return jsonify({"success": False, "error": f"Provider '{provider}' does not support Telegram. Use 'telegram' or 'relay' provider."}), 400
+
+
 @app.route("/api/sms-config")
 def get_sms_config_api():
     """Get current SMS configuration (sensitive fields masked)."""
