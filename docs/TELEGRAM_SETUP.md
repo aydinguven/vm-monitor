@@ -123,7 +123,7 @@ For multi-tenant setups or to avoid exposing the bot token in each dashboard, us
     "url": "http://relay-server:5001",
     "api_key": "your-api-key",
     "template": "custom",
-    "chat_ids": ["8243412741"]
+    "chat_ids": ["123456789"]
   }
 }
 ```
