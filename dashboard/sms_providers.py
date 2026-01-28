@@ -1,10 +1,11 @@
 """
-SMS Providers - Platform-agnostic SMS sending with pluggable providers.
+Notification Providers - Platform-agnostic messaging with pluggable providers.
 
 Supported providers:
 - textbelt: International SMS via textbelt.com
 - iletimerkezi: Turkish SMS provider via iletimerkezi.com
 - twilio: Global SMS via twilio.com
+- telegram: Telegram Bot API
 
 Configuration:
 - Primary: instance/sms_config.json
@@ -179,14 +180,98 @@ class TwilioProvider(SMSProvider):
             return False
 
 
+class TelegramProvider(SMSProvider):
+    """
+    Telegram Bot API provider.
+    API docs: https://core.telegram.org/bots/api#sendmessage
+    
+    Config keys:
+    - telegram.bot_token: Your bot token from @BotFather
+    - telegram.chat_id: Single chat/group/channel ID (legacy)
+    - telegram.chat_ids: List of chat IDs (preferred for multiple recipients)
+    
+    Tips:
+    - For private chats: User must message the bot first
+    - For groups: Add the bot to the group and use the group's chat ID
+    - Group chat IDs are negative numbers (e.g., -1001234567890)
+    """
+    
+    API_URL = "https://api.telegram.org/bot{token}/sendMessage"
+    
+    def __init__(self):
+        self.bot_token = get_sms_config("telegram.bot_token", "")
+        # Support both single chat_id and chat_ids array
+        single_id = get_sms_config("telegram.chat_id", "")
+        self.chat_ids = [single_id] if single_id else []
+    
+    def get_name(self) -> str:
+        return "Telegram"
+    
+    def _get_chat_ids(self) -> list:
+        """Get list of chat IDs from config (supports hot-reload)."""
+        from sms_config import _load_config
+        config = _load_config()
+        
+        chat_ids = []
+        telegram_config = config.get("telegram", {})
+        
+        # Check for chat_ids array first
+        if "chat_ids" in telegram_config:
+            ids = telegram_config["chat_ids"]
+            if isinstance(ids, list):
+                chat_ids = [str(id) for id in ids if id]
+        
+        # Fall back to single chat_id
+        if not chat_ids and "chat_id" in telegram_config:
+            single_id = telegram_config["chat_id"]
+            if single_id:
+                chat_ids = [str(single_id)]
+        
+        return chat_ids
+    
+    def send(self, phone: str, message: str) -> bool:
+        # Note: phone param is ignored for Telegram; we use chat_ids from config
+        chat_ids = self._get_chat_ids()
+        
+        if not self.bot_token:
+            logger.error("Telegram: Missing bot_token")
+            return False
+        
+        if not chat_ids:
+            logger.error("Telegram: No chat_ids configured")
+            return False
+        
+        url = self.API_URL.format(token=self.bot_token)
+        success_count = 0
+        
+        for chat_id in chat_ids:
+            try:
+                response = requests.post(url, json={
+                    "chat_id": chat_id,
+                    "text": message,
+                    "parse_mode": "Markdown"
+                }, timeout=30)
+                
+                result = response.json()
+                if result.get("ok"):
+                    logger.info(f"Telegram message sent to chat {chat_id}")
+                    success_count += 1
+                else:
+                    logger.error(f"Telegram send to {chat_id} failed: {result.get('description')}")
+            except Exception as e:
+                logger.error(f"Telegram error for {chat_id}: {e}")
+        
+        return success_count > 0
+
+
 class DisabledProvider(SMSProvider):
-    """Dummy provider when SMS is disabled."""
+    """Dummy provider when notifications are disabled."""
     
     def get_name(self) -> str:
         return "Disabled"
     
     def send(self, phone: str, message: str) -> bool:
-        logger.debug(f"SMS disabled. Would send to {phone}: {message}")
+        logger.debug(f"Notifications disabled. Would send to {phone}: {message}")
         return True
 
 
@@ -198,6 +283,7 @@ def get_sms_provider() -> SMSProvider:
         "textbelt": TextbeltProvider,
         "iletimerkezi": IletimerkeziProvider,
         "twilio": TwilioProvider,
+        "telegram": TelegramProvider,
         "disabled": DisabledProvider,
     }
     

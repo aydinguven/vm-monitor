@@ -23,7 +23,7 @@
 
 You have VMs scattered across AWS, GCP, Oracle Cloud, and your homelab. You want to:
 - See all their health at a glance
-- Get SMS alerts when something's wrong
+- Get Telegram/SMS alerts when something's wrong
 - Restart services or reboot machines remotely
 - **Without** deploying a 10-component Prometheus/Grafana stack
 - **Without** paying $15/host/month for Datadog
@@ -34,7 +34,7 @@ VM Monitor is a **single Python file** agent + **single Flask app** dashboard. I
 
 - **Monitor**: CPU, RAM, Disk, Swap, Network I/O, containers, pods—all in real-time
 - **Manage**: Restart services, reboot VMs, patch OS, kill runaway processes—all from your browser
-- **Alert**: SMS notifications when thresholds breach, scheduled or on-demand
+- **Alert**: Telegram or SMS notifications when thresholds breach, scheduled or on-demand
 
 > **Platform-Agnostic**: Runs anywhere Python runs. No compiled binaries, no OS-specific dependencies. Pre-built wheels included for offline installation.
 
@@ -88,7 +88,7 @@ Most monitoring tools show you what's happening. VM Monitor lets you **do someth
 - 📱 **Reboot a frozen VM from your phone** - save time not SSH'ing from a terminal
 - 🔧 **Restart services remotely** - don't SSH into 10 servers
 - 🩹 **Patch OS from one place** - see pending updates, apply them with one click
-- 📲 **Get SMS when it matters** - built-in Twilio, no config hell (more integrations on the way)
+- 📲 **Telegram or SMS when it matters** - free Telegram alerts, or Twilio/Textbelt for SMS
 - ⚡ **2-minute setup** - one script, done
 - 🔒 **Self-hosted only** - your data never leaves your network
 - 📴 **Works offline** - pre-built wheels, no internet required
@@ -145,9 +145,9 @@ Agents poll the dashboard for new versions and update seamlessly:
 | Threshold | Badge | Action |
 |-----------|-------|--------|
 | 80%+ sustained | ⚠️ Warning (Yellow) | Visual indicator |
-| 90%+ sustained | 🔴 Critical (Red) | SMS notification |
+| 90%+ sustained | 🔴 Critical (Red) | Telegram/SMS notification |
 
-**SMS Providers**: Twilio, Textbelt, İleti Merkezi
+**Notification Providers**: Telegram (free), Twilio, Textbelt, İleti Merkezi
 
 ### Remote Management
 Execute white-listed diagnostic tools from the dashboard:
@@ -238,7 +238,9 @@ Control what's enabled on the dashboard:
 }
 ```
 
-**Supported Providers**: `twilio`, `textbelt`, `iletimerkezi`, `disabled`
+**Supported Providers**: `telegram`, `twilio`, `textbelt`, `iletimerkezi`, `disabled`
+
+> 💡 **Tip**: Use Telegram for free notifications! See [docs/TELEGRAM_SETUP.md](docs/TELEGRAM_SETUP.md).
 
 ---
 

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.50 (2026-01-28)
+- **Feature**: Telegram notifications - free alternative to SMS alerts.
+- **Feature**: Support multiple chat IDs for multiple recipients.
+- **Docs**: Added `docs/TELEGRAM_SETUP.md` - step-by-step guide for Telegram setup.
+- **Config**: New `telegram` provider with `bot_token` and `chat_ids` config options.
+
 ## v1.49 (2026-01-24)
 - **Feature**: ICMP ping latency + HTTP RTT (both metrics tracked).
 - **UI**: More tolerant color thresholds (green <100ms, yellow 100-300ms, red >300ms).
