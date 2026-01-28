@@ -128,7 +128,7 @@ run_interactive() {
     echo ""
     
     FEATURE_COMMANDS=$(prompt_yes_no "Enable remote command execution?" "y")
-    FEATURE_SMS=$(prompt_yes_no "Enable SMS alerts (requires provider config)?" "n")
+    FEATURE_SMS=$(prompt_yes_no "Enable notifications (SMS/Telegram, requires config)?" "n")
     FEATURE_ALERTS=$(prompt_yes_no "Enable resource alerts (CPU/RAM/Disk thresholds)?" "y")
     FEATURE_CONTAINERS=$(prompt_yes_no "Display container information?" "y")
     FEATURE_PODS=$(prompt_yes_no "Display Kubernetes pod information?" "y")
