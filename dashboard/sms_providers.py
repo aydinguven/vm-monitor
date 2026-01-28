@@ -353,7 +353,7 @@ class DisabledProvider(SMSProvider):
 
 
 def get_sms_provider() -> SMSProvider:
-    """Factory function to get the configured SMS provider."""
+    """Factory function to get the configured SMS provider (single provider mode)."""
     provider_name = get_sms_config("provider", "disabled").lower()
     
     providers = {
@@ -369,9 +369,54 @@ def get_sms_provider() -> SMSProvider:
     return provider_class()
 
 
+def get_all_providers() -> list[SMSProvider]:
+    """
+    Get all configured notification providers.
+    
+    Supports both single provider mode ('provider' key) and 
+    multi-provider mode ('providers' array).
+    
+    Config examples:
+        Single: {"provider": "telegram", ...}
+        Multi:  {"providers": ["telegram", "twilio"], ...}
+    """
+    provider_map = {
+        "textbelt": TextbeltProvider,
+        "iletimerkezi": IletimerkeziProvider,
+        "twilio": TwilioProvider,
+        "telegram": TelegramProvider,
+        "relay": RelayProvider,
+    }
+    
+    # Check for multi-provider mode first
+    providers_list = get_sms_config("providers", [])
+    
+    if providers_list:
+        # Multi-provider mode
+        active_providers = []
+        for name in providers_list:
+            name_lower = name.lower().strip() if isinstance(name, str) else ""
+            if name_lower in provider_map:
+                try:
+                    active_providers.append(provider_map[name_lower]())
+                except Exception as e:
+                    logger.error(f"Error initializing {name} provider: {e}")
+        return active_providers if active_providers else [DisabledProvider()]
+    
+    # Fall back to single provider mode
+    provider_name = get_sms_config("provider", "disabled").lower()
+    if provider_name == "disabled":
+        return [DisabledProvider()]
+    
+    if provider_name in provider_map:
+        return [provider_map[provider_name]()]
+    
+    return [DisabledProvider()]
+
+
 def send_sms(phone: str, message: str) -> bool:
     """
-    Send SMS using the configured provider.
+    Send SMS using the configured provider (legacy single-provider).
     
     Args:
         phone: Phone number in E.164 format (e.g., +905551234567)
@@ -383,4 +428,50 @@ def send_sms(phone: str, message: str) -> bool:
     provider = get_sms_provider()
     logger.info(f"Sending SMS via {provider.get_name()} to {phone}")
     return provider.send(phone, message)
+
+
+def send_notification(message: str, phone: str = "") -> dict:
+    """
+    Send notification via ALL configured providers.
+    
+    Args:
+        message: Notification message text
+        phone: Phone number for SMS providers (optional for Telegram)
+    
+    Returns:
+        Dict with results: {"success": bool, "sent": int, "failed": int, "providers": [...]}
+    """
+    providers = get_all_providers()
+    results = []
+    
+    for provider in providers:
+        provider_name = provider.get_name()
+        try:
+            success = provider.send(phone, message)
+            results.append({
+                "provider": provider_name,
+                "success": success
+            })
+            if success:
+                logger.info(f"Notification sent via {provider_name}")
+            else:
+                logger.warning(f"Notification failed via {provider_name}")
+        except Exception as e:
+            logger.error(f"Error sending via {provider_name}: {e}")
+            results.append({
+                "provider": provider_name,
+                "success": False,
+                "error": str(e)
+            })
+    
+    sent_count = sum(1 for r in results if r["success"])
+    failed_count = len(results) - sent_count
+    
+    return {
+        "success": sent_count > 0,
+        "sent": sent_count,
+        "failed": failed_count,
+        "providers": results
+    }
+
 

@@ -296,8 +296,30 @@ EOF
 }
 EOF
         else
-            # Internal mode configuration
-            if [ "$FEATURE_TELEGRAM" = "true" ]; then
+            # Internal mode configuration - build providers array
+            PROVIDERS_JSON=""
+            
+            if [ "$FEATURE_TELEGRAM" = "true" ] && [ "$FEATURE_SMS" = "true" ]; then
+                # Both enabled - use providers array
+                sudo bash -c "cat > $INSTALL_DIR/instance/sms_config.json" <<EOF
+{
+    "providers": ["telegram", "twilio"],
+    "dashboard_url": "https://your-dashboard.example.com",
+    "telegram": {
+        "bot_token": "$TELEGRAM_BOT_TOKEN",
+        "chat_ids": $CHAT_IDS_JSON
+    },
+    "twilio": {
+        "account_sid": "YOUR_TWILIO_ACCOUNT_SID",
+        "auth_token": "YOUR_TWILIO_AUTH_TOKEN",
+        "from_number": "+1234567890"
+    },
+    "recipient": "+1234567890"
+}
+EOF
+                echo -e "${YELLOW}  Note: Edit instance/sms_config.json with your Twilio credentials${NC}"
+            elif [ "$FEATURE_TELEGRAM" = "true" ]; then
+                # Telegram only
                 sudo bash -c "cat > $INSTALL_DIR/instance/sms_config.json" <<EOF
 {
     "provider": "telegram",
@@ -309,7 +331,7 @@ EOF
 }
 EOF
             elif [ "$FEATURE_SMS" = "true" ]; then
-                # SMS placeholder - user needs to fill in Twilio details
+                # Twilio only
                 sudo bash -c "cat > $INSTALL_DIR/instance/sms_config.json" <<EOF
 {
     "provider": "twilio",
