@@ -130,15 +130,40 @@ run_interactive() {
     FEATURE_COMMANDS=$(prompt_yes_no "Enable remote command execution?" "y")
     FEATURE_ALERTS=$(prompt_yes_no "Enable resource alerts (CPU/RAM/Disk thresholds)?" "y")
     
-    # Notification options (SMS/Telegram)
+    # Notification options
     FEATURE_NOTIFICATIONS=$(prompt_yes_no "Enable alert notifications?" "n")
     FEATURE_SMS="false"
     FEATURE_TELEGRAM="false"
+    USE_RELAY="false"
+    RELAY_URL=""
+    RELAY_API_KEY=""
+    TELEGRAM_BOT_TOKEN=""
+    TELEGRAM_CHAT_IDS=""
     
     if [ "$FEATURE_NOTIFICATIONS" = "true" ]; then
-        echo -e "  ${CYAN}↳ Notification channels:${NC}"
-        FEATURE_SMS=$(prompt_yes_no "    Enable SMS notifications?" "n")
-        FEATURE_TELEGRAM=$(prompt_yes_no "    Enable Telegram notifications?" "y")
+        echo ""
+        echo -e "  ${CYAN}Notification Configuration:${NC}"
+        USE_RELAY=$(prompt_yes_no "    Use external message-relay service?" "n")
+        
+        if [ "$USE_RELAY" = "true" ]; then
+            # Relay mode - get URL and API key
+            echo ""
+            RELAY_URL=$(prompt_text "    Relay service URL" "http://localhost:5001")
+            RELAY_API_KEY=$(prompt_text "    Relay API key" "")
+            TELEGRAM_CHAT_IDS=$(prompt_text "    Telegram chat IDs (comma-separated)" "")
+            FEATURE_TELEGRAM="true"
+        else
+            # Internal mode - configure providers directly
+            echo -e "  ${CYAN}↳ Select notification channels:${NC}"
+            FEATURE_SMS=$(prompt_yes_no "    Enable SMS (Twilio)?" "n")
+            FEATURE_TELEGRAM=$(prompt_yes_no "    Enable Telegram?" "y")
+            
+            if [ "$FEATURE_TELEGRAM" = "true" ]; then
+                echo ""
+                TELEGRAM_BOT_TOKEN=$(prompt_text "    Telegram Bot Token" "")
+                TELEGRAM_CHAT_IDS=$(prompt_text "    Chat IDs (comma-separated)" "")
+            fi
+        fi
     fi
     
     FEATURE_CONTAINERS=$(prompt_yes_no "Display container information?" "y")
@@ -153,8 +178,14 @@ run_interactive() {
     echo -e "  Alerts:       $([ "$FEATURE_ALERTS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
     echo -e "  Notifications:$([ "$FEATURE_NOTIFICATIONS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
     if [ "$FEATURE_NOTIFICATIONS" = "true" ]; then
-        echo -e "    ↳ SMS:      $([ "$FEATURE_SMS" = "true" ] && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}")"
-        echo -e "    ↳ Telegram: $([ "$FEATURE_TELEGRAM" = "true" ] && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}")"
+        if [ "$USE_RELAY" = "true" ]; then
+            echo -e "    ↳ Mode:     ${CYAN}External Relay${NC}"
+            echo -e "    ↳ URL:      ${CYAN}$RELAY_URL${NC}"
+        else
+            echo -e "    ↳ Mode:     ${CYAN}Internal Config${NC}"
+            echo -e "    ↳ SMS:      $([ "$FEATURE_SMS" = "true" ] && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}")"
+            echo -e "    ↳ Telegram: $([ "$FEATURE_TELEGRAM" = "true" ] && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}")"
+        fi
     fi
     echo -e "  Containers:   $([ "$FEATURE_CONTAINERS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
     echo -e "  K8s Pods:     $([ "$FEATURE_PODS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
@@ -240,6 +271,62 @@ EOF
 }
 EOF
     sudo chmod 600 "$INSTALL_DIR/instance/config.json"
+    
+    # Create SMS/Notification configuration if enabled
+    if [ "$FEATURE_NOTIFICATIONS" = "true" ]; then
+        # Convert comma-separated chat IDs to JSON array
+        if [ -n "$TELEGRAM_CHAT_IDS" ]; then
+            CHAT_IDS_JSON=$(echo "$TELEGRAM_CHAT_IDS" | sed 's/,/","/g' | sed 's/^/"/' | sed 's/$/"/')
+            CHAT_IDS_JSON="[$CHAT_IDS_JSON]"
+        else
+            CHAT_IDS_JSON="[]"
+        fi
+        
+        if [ "$USE_RELAY" = "true" ]; then
+            # Relay mode configuration
+            sudo bash -c "cat > $INSTALL_DIR/instance/sms_config.json" <<EOF
+{
+    "provider": "relay",
+    "dashboard_url": "https://your-dashboard.example.com",
+    "relay": {
+        "url": "$RELAY_URL",
+        "api_key": "$RELAY_API_KEY",
+        "chat_ids": $CHAT_IDS_JSON
+    }
+}
+EOF
+        else
+            # Internal mode configuration
+            if [ "$FEATURE_TELEGRAM" = "true" ]; then
+                sudo bash -c "cat > $INSTALL_DIR/instance/sms_config.json" <<EOF
+{
+    "provider": "telegram",
+    "dashboard_url": "https://your-dashboard.example.com",
+    "telegram": {
+        "bot_token": "$TELEGRAM_BOT_TOKEN",
+        "chat_ids": $CHAT_IDS_JSON
+    }
+}
+EOF
+            elif [ "$FEATURE_SMS" = "true" ]; then
+                # SMS placeholder - user needs to fill in Twilio details
+                sudo bash -c "cat > $INSTALL_DIR/instance/sms_config.json" <<EOF
+{
+    "provider": "twilio",
+    "recipient": "+1234567890",
+    "dashboard_url": "https://your-dashboard.example.com",
+    "twilio": {
+        "account_sid": "YOUR_TWILIO_ACCOUNT_SID",
+        "auth_token": "YOUR_TWILIO_AUTH_TOKEN",
+        "from_number": "+1234567890"
+    }
+}
+EOF
+                echo -e "${YELLOW}  Note: Edit instance/sms_config.json with your Twilio credentials${NC}"
+            fi
+        fi
+        sudo chmod 600 "$INSTALL_DIR/instance/sms_config.json"
+    fi
     
     # 6. Initialize database
     echo -e "${BLUE}[6/7] Initializing database...${NC}"
