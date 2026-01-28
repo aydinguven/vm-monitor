@@ -97,6 +97,8 @@ def _key_to_env(key: str) -> str:
         "iletimerkezi.api_key": "ILETIMERKEZI_API_KEY",
         "iletimerkezi.api_hash": "ILETIMERKEZI_API_HASH",
         "iletimerkezi.sender": "ILETIMERKEZI_SENDER",
+        "telegram.bot_token": "TELEGRAM_BOT_TOKEN",
+        "telegram.chat_id": "TELEGRAM_CHAT_ID",
     }
     return mapping.get(key, key.upper().replace(".", "_"))
 
@@ -201,6 +203,9 @@ def get_full_config() -> Dict[str, Any]:
                 config["iletimerkezi"]["api_key"] = "***" if config["iletimerkezi"]["api_key"] else ""
             if "api_hash" in config["iletimerkezi"]:
                 config["iletimerkezi"]["api_hash"] = "***" if config["iletimerkezi"]["api_hash"] else ""
+        if "telegram" in config:
+            if "bot_token" in config["telegram"]:
+                config["telegram"]["bot_token"] = "***" if config["telegram"]["bot_token"] else ""
     
     return config
 

@@ -1,0 +1,13 @@
+{
+    "provider": "telegram",
+    "recipient": "",
+    "dashboard_url": "https://your-dashboard.com",
+    "telegram": {
+        "bot_token": "8217390051:AAGbRgIerk_ExS9mxvh8J7U74aiXWnbYn2o",
+        "chat_id": "8243412741"
+    },
+    "schedule": {
+        "enabled": false,
+        "times": []
+    }
+}
