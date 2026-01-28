@@ -1088,7 +1088,16 @@
         async function fetchVMs() {
             try {
                 const response = await fetch('/api/vms');
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`API Error: ${response.status} - ${text}`);
+                }
                 const vms = await response.json();
+
+                if (!Array.isArray(vms)) {
+                    console.error("Expected array, got:", vms);
+                    throw new Error("Invalid API response format (expected list)");
+                }
                 allVMs = vms; // v1.30 - Store for filtering
                 populateFilters(vms); // v1.30 - Update filter options
                 applyFilters(); // v1.30 - Render with current filters
