@@ -4,7 +4,7 @@
 
 set -e
 
-INSTALL_DIR="/opt/vm-agent-dashboard"
+INSTALL_DIR="/opt/vm-monitor"
 DB_PATH="$INSTALL_DIR/instance/vm_metrics.db"
 UPDATE_URL="https://your-update-server.com"
 
@@ -20,12 +20,12 @@ elif command -v yum &> /dev/null; then
 fi
 
 # 2. Create User and Group
-echo "Creating vm-agent user..."
-if ! getent group vm-agent >/dev/null; then
-    sudo groupadd -r vm-agent
+echo "Creating vm-monitor user..."
+if ! getent group vm-monitor >/dev/null; then
+    sudo groupadd -r vm-monitor
 fi
-if ! id "vm-agent" &>/dev/null; then
-    sudo useradd -r -g vm-agent -d "$INSTALL_DIR" -s /sbin/nologin vm-agent
+if ! id "vm-monitor" &>/dev/null; then
+    sudo useradd -r -g vm-monitor -d "$INSTALL_DIR" -s /sbin/nologin vm-monitor
 fi
 
 # 3. Setup Directories
@@ -67,7 +67,6 @@ sudo ./venv/bin/pip install -r requirements.txt
 sudo ./venv/bin/pip install gunicorn
 
 # 6. Database - Always recreate to ensure correct schema
-# (Agents will repopulate data within 30 seconds)
 echo "Setting up database..."
 sudo mkdir -p instance
 if [ -f "$DB_PATH" ]; then
@@ -75,20 +74,20 @@ if [ -f "$DB_PATH" ]; then
     sudo rm -f "$DB_PATH"
 fi
 
-sudo chown -R vm-agent:vm-agent "$INSTALL_DIR"
+sudo chown -R vm-monitor:vm-monitor "$INSTALL_DIR"
 sudo chmod -R 755 "$INSTALL_DIR"
 
 # 7. Setup Service
 echo "Configuring systemd service..."
-sudo bash -c "cat > /etc/systemd/system/vm-agent-dashboard.service" <<EOF
+sudo bash -c "cat > /etc/systemd/system/vm-monitor.service" <<EOF
 [Unit]
 Description=VM Monitoring Dashboard
 After=network.target
 
 [Service]
 Type=simple
-User=vm-agent
-Group=vm-agent
+User=vm-monitor
+Group=vm-monitor
 WorkingDirectory=$INSTALL_DIR
 ExecStart=$INSTALL_DIR/venv/bin/gunicorn -w 4 -b 0.0.0.0:5000 app:app
 Restart=always
@@ -98,8 +97,8 @@ WantedBy=multi-user.target
 EOF
 
 sudo systemctl daemon-reload
-sudo systemctl enable vm-agent-dashboard
-sudo systemctl restart vm-agent-dashboard
+sudo systemctl enable vm-monitor
+sudo systemctl restart vm-monitor
 
 echo "✅ Dashboard installed and running on port 5000!"
 echo "If using Cloudflare, point your tunnel or DNS to this IP:5000."

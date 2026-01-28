@@ -11,8 +11,8 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-INSTALL_DIR="/opt/vm-agent-dashboard"
-SERVICE_NAME="vm-agent-dashboard"
+INSTALL_DIR="/opt/vm-monitor"
+SERVICE_NAME="vm-monitor"
 
 # Check root
 if [ "$EUID" -ne 0 ]; then
@@ -83,8 +83,6 @@ print_step "Restoring data..."
 if [ -d "$BACKUP_DIR/instance" ]; then
     mkdir -p "$INSTALL_DIR/instance"
     cp -r "$BACKUP_DIR/instance/"* "$INSTALL_DIR/instance/" 2>/dev/null || true
-    # Ensure keys are preserved if for some reason they were overwritten? 
-    # (Actual restore happened above by overwriting anything we just copied)
 fi
 rm -rf "$BACKUP_DIR"
 
@@ -112,13 +110,12 @@ if [ ! -f "$INSTALL_DIR/instance/config.json" ]; then
 }
 EOF
         echo "Migration complete."
-        # Permission fix will happen next
     fi
 fi
 
 # 6. Fix Permissions
 print_step "Fixing permissions (Hardening)..."
-chown -R vm-agent:vm-agent "$INSTALL_DIR"
+chown -R vm-monitor:vm-monitor "$INSTALL_DIR"
 # 750/640 for hardening, excluding venv
 find "$INSTALL_DIR" -type d -not -path "$INSTALL_DIR/venv*" -exec chmod 750 {} \;
 find "$INSTALL_DIR" -type f -not -path "$INSTALL_DIR/venv*" -exec chmod 640 {} \;
@@ -137,7 +134,7 @@ cd "$INSTALL_DIR"
 if [ ! -d "venv" ]; then
     print_step "Creating virtual environment..."
     python3 -m venv venv
-    chown -R vm-agent:vm-agent venv
+    chown -R vm-monitor:vm-monitor venv
 fi
 
 ./venv/bin/pip install --upgrade pip -q
@@ -146,12 +143,7 @@ fi
 
 # 7. Migrate Database
 print_step "Running database migrations..."
-# Using the same logic as setup - create_all() is idempotent for checking tables
-# If we had real migrations (alembic), we'd run upgrade here.
-# For now, just ensuring tables exist is enough.
-print_step "Running database migrations..."
-# Run as vm-agent user, app loads config.json automatically
-sudo -u vm-agent ./venv/bin/python -c "
+sudo -u vm-monitor ./venv/bin/python -c "
 from app import app, db
 with app.app_context():
     db.create_all()
