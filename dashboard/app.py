@@ -248,8 +248,18 @@ def trigger_telegram():
     # Check if provider is telegram or relay
     if provider == "telegram":
         bot_token = get_sms_config("telegram.bot_token", "")
-        chat_id = get_sms_config("telegram.chat_id", "")
-        if not bot_token or not chat_id:
+        
+        # Support both chat_id (string or array) and chat_ids (array)
+        chat_ids = get_sms_config("telegram.chat_ids", [])
+        single_id = get_sms_config("telegram.chat_id", "")
+        
+        # Handle chat_id being a list or string
+        if isinstance(single_id, list):
+            chat_ids = single_id
+        elif single_id and not chat_ids:
+            chat_ids = [single_id]
+        
+        if not bot_token or not chat_ids:
             return jsonify({"success": False, "error": "Telegram not configured. Edit instance/sms_config.json"}), 400
         
         # Build summary message
@@ -288,19 +298,28 @@ def trigger_telegram():
         
         import requests
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        try:
-            response = requests.post(url, json={
-                "chat_id": chat_id,
-                "text": message,
-                "parse_mode": "Markdown"
-            }, timeout=30)
-            result = response.json()
-            if result.get("ok"):
-                return jsonify({"success": True, "message": "Telegram message sent"})
-            else:
-                return jsonify({"success": False, "error": result.get("description", "Unknown error")}), 400
-        except Exception as e:
-            return jsonify({"success": False, "error": str(e)}), 500
+        success_count = 0
+        last_error = None
+        
+        for chat_id in chat_ids:
+            try:
+                response = requests.post(url, json={
+                    "chat_id": chat_id,
+                    "text": message,
+                    "parse_mode": "Markdown"
+                }, timeout=30)
+                result = response.json()
+                if result.get("ok"):
+                    success_count += 1
+                else:
+                    last_error = result.get("description", "Unknown error")
+            except Exception as e:
+                last_error = str(e)
+        
+        if success_count > 0:
+            return jsonify({"success": True, "message": f"Sent to {success_count}/{len(chat_ids)} recipients"})
+        else:
+            return jsonify({"success": False, "error": last_error or "Failed to send"}), 400
     
     elif provider == "relay":
         relay_url = get_sms_config("relay.url", "")
