@@ -252,9 +252,41 @@ def trigger_telegram():
         if not bot_token or not chat_id:
             return jsonify({"success": False, "error": "Telegram not configured. Edit instance/sms_config.json"}), 400
         
-        # Send test message
+        # Build summary message
+        vms = VM.query.all()
+        online_count = sum(1 for vm in vms if (datetime.utcnow() - vm.last_seen).total_seconds() < VM_OFFLINE_THRESHOLD)
+        offline_count = len(vms) - online_count
+        
+        alert_count = 0
+        warning_count = 0
+        for vm in vms:
+            if vm.cpu_avg >= 90 or vm.ram_percent >= 90:
+                alert_count += 1
+            elif vm.cpu_avg >= 80 or vm.ram_percent >= 80:
+                warning_count += 1
+            if vm.disk_usage:
+                max_disk = max((d.get("percent", 0) for d in vm.disk_usage.values()), default=0)
+                if max_disk >= 90:
+                    alert_count += 1
+                elif max_disk >= 80:
+                    warning_count += 1
+        
+        # Format message
+        status_emoji = "🟢" if alert_count == 0 and warning_count == 0 else ("🔴" if alert_count > 0 else "🟡")
+        lines = [
+            f"{status_emoji} *VM Monitor Summary*",
+            f"📊 {online_count} online, {offline_count} offline"
+        ]
+        if alert_count > 0:
+            lines.append(f"🚨 {alert_count} critical alerts")
+        if warning_count > 0:
+            lines.append(f"⚠️ {warning_count} warnings")
+        if alert_count == 0 and warning_count == 0:
+            lines.append("✅ All systems healthy")
+        
+        message = "\n".join(lines)
+        
         import requests
-        message = "🧪 Test notification from VM Monitor Dashboard"
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         try:
             response = requests.post(url, json={
