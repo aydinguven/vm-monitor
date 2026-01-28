@@ -35,7 +35,7 @@ if not IS_WINDOWS:
 # Configuration
 # =============================================================================
 
-AGENT_VERSION = "1.45"
+AGENT_VERSION = "1.50"
 STRESS_DURATION = 75  # Duration in seconds for stress tests
 
 # Config loader
@@ -1094,9 +1094,56 @@ def collect_metrics() -> dict:
     }
 
 
+# v1.48 - Track latencies for next push
+_last_ping_ms = None
+_last_http_rtt_ms = None
+
+
+def ping_dashboard() -> float:
+    """
+    ICMP ping to dashboard server and return latency in ms.
+    Returns None if ping fails.
+    """
+    try:
+        # Extract host from SERVER_URL
+        from urllib.parse import urlparse
+        host = urlparse(SERVER_URL).hostname
+        if not host:
+            return None
+        
+        # Platform-specific ping command
+        if platform.system().lower() == "windows":
+            cmd = ["ping", "-n", "1", "-w", "2000", host]
+        else:
+            cmd = ["ping", "-c", "1", "-W", "2", host]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=3)
+        
+        if result.returncode == 0:
+            # Parse latency: "time=12.3 ms" or "time=12ms" or "time<1ms"
+            match = re.search(r"time[=<](\d+\.?\d*)\s*ms", result.stdout, re.IGNORECASE)
+            if match:
+                return float(match.group(1))
+        return None
+    except Exception:
+        return None
+
+
 def push_metrics(metrics: dict) -> bool:
     """Push metrics to the central server."""
+    global _last_ping_ms, _last_http_rtt_ms
+    
+    # Include previous latencies in payload (v1.48)
+    if _last_ping_ms is not None:
+        metrics["latency_ms"] = _last_ping_ms  # ICMP ping (network latency)
+    if _last_http_rtt_ms is not None:
+        metrics["http_rtt_ms"] = _last_http_rtt_ms  # HTTP round-trip time
+    
+    # Measure ICMP ping before POST
+    _last_ping_ms = ping_dashboard()
+    
     try:
+        start_time = time.time()
         response = requests.post(
             f"{SERVER_URL}/api/metrics",
             json=metrics,
@@ -1106,9 +1153,13 @@ def push_metrics(metrics: dict) -> bool:
             },
             timeout=10
         )
+        end_time = time.time()
+        
+        # Store HTTP RTT for next push (in milliseconds)
+        _last_http_rtt_ms = round((end_time - start_time) * 1000, 2)
         
         if response.status_code == 200:
-            logger.debug("Metrics pushed successfully")
+            logger.debug(f"Metrics pushed (ping: {_last_ping_ms}ms, http: {_last_http_rtt_ms}ms)")
             
             # v1.22 - Process queued commands
             try:
@@ -1126,6 +1177,7 @@ def push_metrics(metrics: dict) -> bool:
             
     except requests.RequestException as e:
         logger.error(f"Failed to push metrics: {e}")
+        _last_latency_ms = None  # Reset on failure
         return False
 
 
