@@ -28,7 +28,7 @@ from config import (
     ALERT_CRITICAL_THRESHOLD,
 )
 from models import Command, Metric, VM, db
-from sms_providers import send_sms
+from sms_providers import send_sms, send_notification
 from general_config import get_general_config
 
 app = Flask(__name__)
@@ -180,12 +180,12 @@ def send_sms_alert():
         
         message = f"You have {', '.join(parts)}. {dashboard_url}"
         
-        app.logger.info(f"Sending SMS alert: {message}")
-        success = send_sms(recipient, message)
-        if success:
-            app.logger.info("SMS alert sent successfully")
+        app.logger.info(f"Sending notification alert: {message}")
+        result = send_notification(message, recipient)
+        if result.get("success"):
+            app.logger.info(f"Notification sent: {result.get('sent')}/{result.get('sent') + result.get('failed', 0)} providers succeeded")
         else:
-            app.logger.error("SMS alert failed to send")
+            app.logger.error(f"Notification failed: {result}")
 
 
 # Load timezone from config (default to Turkey if not set)
