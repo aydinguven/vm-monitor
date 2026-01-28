@@ -244,9 +244,12 @@ def trigger_telegram():
     from sms_config import get_sms_config
     
     provider = get_sms_config("provider", "")
+    providers = get_sms_config("providers", [])
     
-    # Check if provider is telegram or relay
-    if provider == "telegram":
+    # Check if telegram is enabled (single provider mode or multi-provider mode)
+    telegram_enabled = provider == "telegram" or "telegram" in [p.lower() for p in providers if isinstance(p, str)]
+    
+    if telegram_enabled:
         bot_token = get_sms_config("telegram.bot_token", "")
         
         # Support both chat_id (string or array) and chat_ids (array)
