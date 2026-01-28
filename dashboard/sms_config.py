@@ -99,6 +99,9 @@ def _key_to_env(key: str) -> str:
         "iletimerkezi.sender": "ILETIMERKEZI_SENDER",
         "telegram.bot_token": "TELEGRAM_BOT_TOKEN",
         "telegram.chat_id": "TELEGRAM_CHAT_ID",
+        "relay.url": "RELAY_URL",
+        "relay.api_key": "RELAY_API_KEY",
+        "relay.template": "RELAY_TEMPLATE",
     }
     return mapping.get(key, key.upper().replace(".", "_"))
 

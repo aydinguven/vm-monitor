@@ -112,6 +112,27 @@ export TELEGRAM_CHAT_ID="your_chat_id"
 - Check bot token is correct
 - Verify chat ID in config matches the user
 
+## Message Relay Service (Optional)
+
+For multi-tenant setups or to avoid exposing the bot token in each dashboard, use the [Message Relay Service](https://github.com/aydinguven/message-relay):
+
+```json
+{
+  "provider": "relay",
+  "relay": {
+    "url": "http://relay-server:5001",
+    "api_key": "your-api-key",
+    "template": "custom",
+    "chat_ids": ["8243412741"]
+  }
+}
+```
+
+Benefits:
+- Bot token stays in one place
+- Template-only messaging (prevents abuse)
+- Centralized logging and rate limiting
+
 ## Disabling Notifications
 
 ```json
