@@ -248,6 +248,7 @@ def trigger_telegram():
     
     # Check if telegram is enabled (single provider mode or multi-provider mode)
     telegram_enabled = provider == "telegram" or "telegram" in [p.lower() for p in providers if isinstance(p, str)]
+    relay_enabled = provider == "relay" or "relay" in [p.lower() for p in providers if isinstance(p, str)]
     
     if telegram_enabled:
         bot_token = get_sms_config("telegram.bot_token", "")
@@ -324,7 +325,7 @@ def trigger_telegram():
         else:
             return jsonify({"success": False, "error": last_error or "Failed to send"}), 400
     
-    elif provider == "relay":
+    elif relay_enabled:
         relay_url = get_sms_config("relay.url", "")
         relay_api_key = get_sms_config("relay.api_key", "")
         if not relay_url or not relay_api_key:
