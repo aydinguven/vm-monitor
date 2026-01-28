@@ -128,8 +128,19 @@ run_interactive() {
     echo ""
     
     FEATURE_COMMANDS=$(prompt_yes_no "Enable remote command execution?" "y")
-    FEATURE_SMS=$(prompt_yes_no "Enable notifications (SMS/Telegram, requires config)?" "n")
     FEATURE_ALERTS=$(prompt_yes_no "Enable resource alerts (CPU/RAM/Disk thresholds)?" "y")
+    
+    # Notification options (SMS/Telegram)
+    FEATURE_NOTIFICATIONS=$(prompt_yes_no "Enable alert notifications?" "n")
+    FEATURE_SMS="false"
+    FEATURE_TELEGRAM="false"
+    
+    if [ "$FEATURE_NOTIFICATIONS" = "true" ]; then
+        echo -e "  ${CYAN}↳ Notification channels:${NC}"
+        FEATURE_SMS=$(prompt_yes_no "    Enable SMS notifications?" "n")
+        FEATURE_TELEGRAM=$(prompt_yes_no "    Enable Telegram notifications?" "y")
+    fi
+    
     FEATURE_CONTAINERS=$(prompt_yes_no "Display container information?" "y")
     FEATURE_PODS=$(prompt_yes_no "Display Kubernetes pod information?" "y")
     
@@ -139,8 +150,12 @@ run_interactive() {
     echo -e "  Port:         ${CYAN}$PORT${NC}"
     echo -e "  API Key:      ${CYAN}${API_KEY:0:8}...${NC}"
     echo -e "  Commands:     $([ "$FEATURE_COMMANDS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
-    echo -e "  SMS Alerts:   $([ "$FEATURE_SMS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
     echo -e "  Alerts:       $([ "$FEATURE_ALERTS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
+    echo -e "  Notifications:$([ "$FEATURE_NOTIFICATIONS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
+    if [ "$FEATURE_NOTIFICATIONS" = "true" ]; then
+        echo -e "    ↳ SMS:      $([ "$FEATURE_SMS" = "true" ] && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}")"
+        echo -e "    ↳ Telegram: $([ "$FEATURE_TELEGRAM" = "true" ] && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}")"
+    fi
     echo -e "  Containers:   $([ "$FEATURE_CONTAINERS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
     echo -e "  K8s Pods:     $([ "$FEATURE_PODS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
     echo ""
@@ -207,6 +222,7 @@ install_dashboard() {
 {
     "commands": $FEATURE_COMMANDS,
     "sms": $FEATURE_SMS,
+    "telegram": $FEATURE_TELEGRAM,
     "alerts": $FEATURE_ALERTS,
     "containers": $FEATURE_CONTAINERS,
     "pods": $FEATURE_PODS,
