@@ -44,7 +44,7 @@ def _load_config() -> Dict[str, Any]:
         return {}
 
 
-def get_sms_config(key: str, default: str = "") -> str:
+def get_sms_config(key: str, default = ""):
     """
     Get SMS configuration value.
     
@@ -76,10 +76,10 @@ def get_sms_config(key: str, default: str = "") -> str:
                 value = None
                 break
         
-        if value is not None and isinstance(value, str):
+        if value is not None:
             return value
     
-    # Fall back to environment variable
+    # Fall back to environment variable (only for string values)
     env_key = _key_to_env(key)
     return os.getenv(env_key, default)
 
