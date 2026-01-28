@@ -238,7 +238,7 @@ Control what's enabled on the dashboard:
 }
 ```
 
-**Supported Providers**: `telegram`, `twilio`, `textbelt`, `iletimerkezi`, `disabled`
+**Supported Providers**: `telegram`, `relay`, `twilio`, `textbelt`, `iletimerkezi`, `disabled`
 
 > 💡 **Tip**: Use Telegram for free notifications! See [docs/TELEGRAM_SETUP.md](docs/TELEGRAM_SETUP.md).
 

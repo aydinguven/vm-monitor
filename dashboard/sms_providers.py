@@ -5,7 +5,8 @@ Supported providers:
 - textbelt: International SMS via textbelt.com
 - iletimerkezi: Turkish SMS provider via iletimerkezi.com
 - twilio: Global SMS via twilio.com
-- telegram: Telegram Bot API
+- telegram: Telegram Bot API (direct)
+- relay: Message Relay Service (for centralized bot management)
 
 Configuration:
 - Primary: instance/sms_config.json
@@ -264,6 +265,82 @@ class TelegramProvider(SMSProvider):
         return success_count > 0
 
 
+class RelayProvider(SMSProvider):
+    """
+    Message Relay Service provider.
+    
+    Sends messages through a centralized relay service that holds the bot token.
+    This allows template-only messaging and centralized management.
+    
+    Config keys:
+    - relay.url: Relay service URL (e.g., http://relay:5001)
+    - relay.api_key: Your API key for the relay service
+    - relay.template: Template name to use (default: custom)
+    - relay.chat_ids: List of chat IDs to send to
+    """
+    
+    def __init__(self):
+        self.relay_url = get_sms_config("relay.url", "")
+        self.api_key = get_sms_config("relay.api_key", "")
+        self.template = get_sms_config("relay.template", "custom")
+    
+    def get_name(self) -> str:
+        return "Relay"
+    
+    def _get_chat_ids(self) -> list:
+        """Get list of chat IDs from config."""
+        from sms_config import _load_config
+        config = _load_config()
+        
+        relay_config = config.get("relay", {})
+        chat_ids = relay_config.get("chat_ids", [])
+        
+        if isinstance(chat_ids, list):
+            return [str(id) for id in chat_ids if id]
+        return []
+    
+    def send(self, phone: str, message: str) -> bool:
+        if not self.relay_url:
+            logger.error("Relay: Missing relay URL")
+            return False
+        
+        if not self.api_key:
+            logger.error("Relay: Missing API key")
+            return False
+        
+        chat_ids = self._get_chat_ids()
+        if not chat_ids:
+            logger.error("Relay: No chat_ids configured")
+            return False
+        
+        url = f"{self.relay_url.rstrip('/')}/send/batch"
+        
+        try:
+            response = requests.post(
+                url,
+                json={
+                    "template": self.template,
+                    "chat_ids": chat_ids,
+                    "variables": {
+                        "message": message
+                    }
+                },
+                headers={"X-API-Key": self.api_key},
+                timeout=30
+            )
+            
+            result = response.json()
+            if result.get("success"):
+                logger.info(f"Relay: Sent to {result.get('sent')}/{result.get('total')} recipients")
+                return True
+            else:
+                logger.error(f"Relay send failed: {result.get('error')}")
+                return False
+        except Exception as e:
+            logger.error(f"Relay error: {e}")
+            return False
+
+
 class DisabledProvider(SMSProvider):
     """Dummy provider when notifications are disabled."""
     
@@ -284,6 +361,7 @@ def get_sms_provider() -> SMSProvider:
         "iletimerkezi": IletimerkeziProvider,
         "twilio": TwilioProvider,
         "telegram": TelegramProvider,
+        "relay": RelayProvider,
         "disabled": DisabledProvider,
     }
     
