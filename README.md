@@ -79,6 +79,76 @@ I even made the installers interactive, so it deploys with minimal technical kno
 
 ---
 
+## 🔐 Authentication (New in v1.51)
+
+VM Monitor now includes **optional authentication** for securing your dashboard.
+
+### 🔒 When to Enable
+**Recommended for:**
+- Public/internet-facing deployments
+- Multi-user environments
+- Compliance requirements (access control, audit trails)
+
+**Can disable for:**
+- Private networks behind VPN
+- Single-user homelab setups
+- Environments with firewall/network-level access control
+
+### Setup
+
+During installation, you'll be prompted:
+```
+Enable authentication? (Y/n)
+```
+
+**If Enabled (Default):**
+- Prompts for admin username (default: `admin`)
+- Secure password input (minimum 6 characters, hidden)
+- Creates admin user with bcrypt-hashed password
+- Dashboard requires login, APIs require session OR API key
+
+**If Disabled:**
+- No user creation
+- Dashboard/APIs publicly accessible
+- ⚠️ Security warning shown during setup
+
+### Managing Users
+
+**Add additional users:**
+```bash
+sudo /opt/vm-monitor/scripts/add_user.sh
+```
+
+**Enable/Disable auth on existing installation:**
+
+Edit `/opt/vm-monitor/instance/config.json`:
+```json
+{
+  "auth_enabled": false  // Change to false to disable
+}
+```
+
+Then restart: `sudo systemctl restart vm-monitor`
+
+### Security Features
+- ✅ Bcrypt password hashing
+- ✅ Session cookies: HttpOnly, Secure (HTTPS), SameSite=Lax
+- ✅ 7-day session lifetime
+- ✅ "Remember me" functionality
+- ✅ Protected management endpoints
+- ✅ Backward compatible (agents unchanged)
+
+### Migration for Existing Installations
+```bash
+cd /opt/vm-monitor
+git pull
+sudo ./venv/bin/pip install flask-login bcrypt
+sudo ./venv/bin/python dashboard/migrate_add_auth.py
+sudo systemctl restart vm-monitor
+```
+
+---
+
 ## 🔥 Why VM Monitor?
 
 ### More than a Monitor, It's Built for Control
