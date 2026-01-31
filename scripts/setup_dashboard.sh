@@ -311,6 +311,7 @@ EOF
 {
   "secret_key": "$SECRET_KEY",
   "api_key": "$API_KEY",
+  "auth_enabled": $([ "$FEATURE_AUTH" = "true" ] && echo "true" || echo "false"),
   "timezone": "Europe/Istanbul"
 }
 EOF
