@@ -106,17 +106,35 @@ def load_user(user_id):
 
 
 # --------------------------
-# Authentication Decorator
+# Authentication Decorators
 # --------------------------
 
 def require_api_key(f):
-    """Decorator to require API key for endpoint."""
+    """Decorator to require API key for agent endpoints (strict API key only)."""
     @wraps(f)
     def decorated(*args, **kwargs):
         key = request.headers.get("X-API-Key")
         if key != API_KEY:
             return jsonify({"error": "Invalid or missing API key"}), 401
         return f(*args, **kwargs)
+    return decorated
+
+
+def require_auth(f):
+    """Decorator to require either session auth OR API key (for management endpoints)."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # Check if user is logged in via session (Flask-Login)
+        if current_user.is_authenticated:
+            return f(*args, **kwargs)
+        
+        # Otherwise, check for API key
+        key = request.headers.get("X-API-Key")
+        if key == API_KEY:
+            return f(*args, **kwargs)
+        
+        # Neither session nor API key valid
+        return jsonify({"error": "Authentication required. Please login or provide API key."}), 401
     return decorated
 
 
@@ -608,6 +626,7 @@ def receive_metrics():
 
 
 @app.route("/api/vms", methods=["GET"])
+@require_auth
 def list_vms():
     """List all VMs with their latest metrics. Supports pagination."""
     # v1.30.1 - Pagination for 1000+ VMs
@@ -637,6 +656,7 @@ def list_vms():
 
 
 @app.route("/api/vms/<hostname>", methods=["GET"])
+@require_auth
 def get_vm(hostname):
     """Get detailed info for a specific VM, including history."""
     vm = VM.query.filter_by(hostname=hostname).first()
@@ -693,7 +713,7 @@ def get_vm(hostname):
 
 
 @app.route("/api/vms/<hostname>", methods=["DELETE"])
-@require_api_key
+@require_auth
 def delete_vm(hostname):
     """Delete a VM and all its metrics."""
     vm = VM.query.filter_by(hostname=hostname).first()
@@ -707,6 +727,7 @@ def delete_vm(hostname):
 
 
 @app.route("/api/vms/<hostname>/command", methods=["POST"])
+@require_auth
 def queue_command(hostname):
     """Queue a command for execution on a VM."""
     vm = VM.query.filter_by(hostname=hostname).first()
@@ -749,6 +770,7 @@ def command_result(cmd_id):
 
 
 @app.route("/api/commands/<int:cmd_id>", methods=["GET"])
+@require_auth
 def get_command_status(cmd_id):
     """Get command status and output."""
     cmd = Command.query.get(cmd_id)
