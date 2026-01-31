@@ -4,8 +4,40 @@ VM Dashboard - Database Models
 
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
+import bcrypt
 
 db = SQLAlchemy()
+
+
+
+class User(UserMixin, db.Model):
+    """User account for dashboard authentication."""
+    __tablename__ = "users"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(200), nullable=False)  # bcrypt hash
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime)
+    is_active = db.Column(db.Boolean, default=True)
+    
+    def set_password(self, password):
+        """Hash and set the password using bcrypt."""
+        password_bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        self.password_hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
+    
+    def check_password(self, password):
+        """Verify a password against the stored hash."""
+        if not self.password_hash:
+            return False
+        password_bytes = password.encode('utf-8')
+        hash_bytes = self.password_hash.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, hash_bytes)
+    
+    def __repr__(self):
+        return f'<User {self.username}>'
 
 
 class VM(db.Model):

@@ -12,8 +12,9 @@ from functools import wraps
 from logging.handlers import RotatingFileHandler
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, jsonify, render_template, request, g
+from flask import Flask, jsonify, render_template, request, g, redirect, url_for, flash
 from flask_migrate import Migrate
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
 from config import (
     API_KEY,
@@ -26,8 +27,13 @@ from config import (
     SMS_DASHBOARD_URL,
     ALERT_WARNING_THRESHOLD,
     ALERT_CRITICAL_THRESHOLD,
+    SESSION_COOKIE_SECURE,
+    SESSION_COOKIE_HTTPONLY,
+    SESSION_COOKIE_SAMESITE,
+    PERMANENT_SESSION_LIFETIME,
+    REMEMBER_COOKIE_DURATION,
 )
-from models import Command, Metric, VM, db
+from models import Command, Metric, VM, User, db
 from sms_providers import send_sms, send_notification
 from general_config import get_general_config
 
@@ -37,8 +43,22 @@ app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["TEMPLATES_AUTO_RELOAD"] = True # Force reload templates
 
+# Session security settings
+app.config["SESSION_COOKIE_SECURE"] = SESSION_COOKIE_SECURE
+app.config["SESSION_COOKIE_HTTPONLY"] = SESSION_COOKIE_HTTPONLY
+app.config["SESSION_COOKIE_SAMESITE"] = SESSION_COOKIE_SAMESITE
+app.config["PERMANENT_SESSION_LIFETIME"] = PERMANENT_SESSION_LIFETIME
+app.config["REMEMBER_COOKIE_DURATION"] = REMEMBER_COOKIE_DURATION
+
 db.init_app(app)
 migrate = Migrate(app, db)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access this page.'
+
 
 # --------------------------
 # Access Logging Setup
@@ -73,6 +93,16 @@ def log_access(response):
         log_line = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {client_ip} | {request.method} {request.path} | {response.status_code} | {duration:.0f}ms | {user_agent}"
         access_logger.info(log_line)
     return response
+
+
+# --------------------------
+# Flask-Login User Loader
+# --------------------------
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Load user by ID for Flask-Login."""
+    return User.query.get(int(user_id))
 
 
 # --------------------------
@@ -729,10 +759,66 @@ def get_command_status(cmd_id):
 
 
 # --------------------------
+# Authentication Routes
+# --------------------------
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Handle user login."""
+    # If already logged in, redirect to dashboard
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        remember = request.form.get('remember', False) == 'on'
+        
+        if not username or not password:
+            flash('Please enter both username and password.', 'error')
+            return render_template('login.html')
+        
+        # Find user
+        user = User.query.filter_by(username=username).first()
+        
+        if user and user.check_password(password):
+            if not user.is_active:
+                flash('Account is disabled. Contact administrator.', 'error')
+                return render_template('login.html')
+            
+            # Login successful
+            login_user(user, remember=remember)
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+            
+            # Redirect to originally requested page or dashboard
+            next_page = request.args.get('next')
+            if next_page and next_page.startswith('/'):
+                return redirect(next_page)
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid username or password.', 'error')
+            return render_template('login.html')
+    
+    # GET request - show login form
+    return render_template('login.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    """Handle user logout."""
+    logout_user()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
+
+
+# --------------------------
 # Web UI
 # --------------------------
 
 @app.route("/")
+@login_required
 def dashboard():
     """Render the dashboard UI."""
     version = int(datetime.utcnow().timestamp())
@@ -740,6 +826,7 @@ def dashboard():
 
 
 @app.route("/changelog")
+@login_required
 def changelog():
     """Render the changelog page."""
     return render_template("changelog.html")
@@ -752,6 +839,7 @@ def health():
 
 
 @app.route("/api/export")
+@login_required
 def export_data():
     """Export all VMs as JSON or CSV."""
     fmt = request.args.get("format", "json").lower()
@@ -787,6 +875,7 @@ def export_data():
 
 
 @app.route("/logs")
+@login_required
 def view_logs():
     """View access logs (most recent first)."""
     lines = request.args.get("lines", 100, type=int)

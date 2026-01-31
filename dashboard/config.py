@@ -4,6 +4,7 @@ Copy this file to config.py and customize for your environment.
 """
 
 import os
+from datetime import timedelta
 
 # Flask settings (Priority: general_config > env > default)
 from general_config import get_general_config
@@ -14,6 +15,13 @@ DEBUG = str(get_general_config("debug", os.getenv("FLASK_DEBUG", "False"))).lowe
 # Database
 SQLALCHEMY_DATABASE_URI = get_general_config("database_url", os.getenv("DATABASE_URL", "sqlite:///vm_metrics.db"))
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# Session Configuration (Flask-Login)
+SESSION_COOKIE_SECURE = os.getenv("SESSION_SECURE", "False").lower() == "true"  # Enable for HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Prevent XSS attacks
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+PERMANENT_SESSION_LIFETIME = timedelta(days=7)  # 7-day sessions
+REMEMBER_COOKIE_DURATION = timedelta(days=7)  # "Remember me" duration
 
 # API Authentication
 API_KEY = get_general_config("api_key", os.getenv("VM_DASHBOARD_API_KEY", "changeme"))

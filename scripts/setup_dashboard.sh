@@ -18,6 +18,8 @@ INSTALL_DIR="/opt/vm-monitor"
 PORT=5000
 API_KEY=""
 SECRET_KEY=""
+ADMIN_USERNAME=""
+ADMIN_PASSWORD=""
 BATCH_MODE=false
 
 # Feature flags (all enabled by default)
@@ -122,7 +124,31 @@ run_interactive() {
     SECRET_KEY=$(prompt_text "Flask Secret Key (press Enter to auto-generate)" "$default_secret")
     
     echo ""
-    echo -e "${GREEN}Step 2: Feature Configuration${NC}"
+    echo -e "${GREEN}Step 2: Admin Account${NC}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo -e "${YELLOW}Create an admin account to access the dashboard${NC}"
+    ADMIN_USERNAME=$(prompt_text "Admin username" "admin")
+    
+    # Secure password input (hidden)
+    while true; do
+        read -sp "$(echo -e ${BLUE}Admin password${NC}: )" ADMIN_PASSWORD
+        echo ""
+        if [ ${#ADMIN_PASSWORD} -lt 6 ]; then
+            echo -e "${RED}Password must be at least 6 characters.${NC}"
+            continue
+        fi
+        read -sp "$(echo -e ${BLUE}Confirm password${NC}: )" ADMIN_PASSWORD_CONFIRM
+        echo ""
+        
+        if [ "$ADMIN_PASSWORD" = "$ADMIN_PASSWORD_CONFIRM" ]; then
+            break
+        else
+            echo -e "${RED}Passwords do not match. Try again.${NC}"
+        fi
+    done
+    
+    echo ""
+    echo -e "${GREEN}Step 3: Feature Configuration${NC}"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo -e "${YELLOW}Enable or disable dashboard features:${NC}"
     echo ""
@@ -170,10 +196,11 @@ run_interactive() {
     FEATURE_PODS=$(prompt_yes_no "Display Kubernetes pod information?" "y")
     
     echo ""
-    echo -e "${GREEN}Step 3: Confirm Settings${NC}"
+    echo -e "${GREEN}Step 4: Confirm Settings${NC}"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo -e "  Port:         ${CYAN}$PORT${NC}"
     echo -e "  API Key:      ${CYAN}${API_KEY:0:8}...${NC}"
+    echo -e "  Admin User:   ${CYAN}$ADMIN_USERNAME${NC}"
     echo -e "  Commands:     $([ "$FEATURE_COMMANDS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
     echo -e "  Alerts:       $([ "$FEATURE_ALERTS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
     echo -e "  Notifications:$([ "$FEATURE_NOTIFICATIONS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
@@ -354,14 +381,29 @@ EOF
     echo -e "${BLUE}[6/7] Initializing database...${NC}"
     cd "$INSTALL_DIR"
     
-    # (Environment variables no longer needed as config.json is present)
-    
     # Initialize database using Flask shell
     sudo -E ./venv/bin/python -c "
 from app import app, db
+from models import User
+
 with app.app_context():
     db.create_all()
     print('  Database tables created')
+    
+    # Create admin user if provided
+    admin_username = '$ADMIN_USERNAME'
+    admin_password = '$ADMIN_PASSWORD'
+    
+    if admin_username and admin_password:
+        admin = User.query.filter_by(username=admin_username).first()
+        if not admin:
+            admin = User(username=admin_username)
+            admin.set_password(admin_password)
+            db.session.add(admin)
+            db.session.commit()
+            print(f'  Admin user created: {admin_username}')
+        else:
+            print(f'  Admin user already exists: {admin_username}')
 "
     
     # Set ownership
