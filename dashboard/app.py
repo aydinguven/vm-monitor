@@ -409,6 +409,7 @@ def trigger_telegram():
 
 
 @app.route("/api/sms-config")
+@require_auth
 def get_sms_config_api():
     """Get current SMS configuration (sensitive fields masked)."""
     from sms_config import get_full_config
@@ -440,6 +441,7 @@ def get_agent_version():
 
 
 @app.route("/api/sms-config", methods=["POST"])
+@require_auth
 def save_sms_config_api():
     """Save SMS configuration. Expects JSON body with config fields."""
     from sms_config import save_sms_config, get_full_config
