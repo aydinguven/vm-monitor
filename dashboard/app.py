@@ -113,6 +113,12 @@ def require_api_key(f):
     """Decorator to require API key for agent endpoints (strict API key only)."""
     @wraps(f)
     def decorated(*args, **kwargs):
+        from config import FEATURE_AUTH_ENABLED
+        
+        # If auth is disabled globally, allow access
+        if not FEATURE_AUTH_ENABLED:
+            return f(*args, **kwargs)
+        
         key = request.headers.get("X-API-Key")
         if key != API_KEY:
             return jsonify({"error": "Invalid or missing API key"}), 401
@@ -124,6 +130,12 @@ def require_auth(f):
     """Decorator to require either session auth OR API key (for management endpoints)."""
     @wraps(f)
     def decorated(*args, **kwargs):
+        from config import FEATURE_AUTH_ENABLED
+        
+        # If auth is disabled globally, allow all access
+        if not FEATURE_AUTH_ENABLED:
+            return f(*args, **kwargs)
+        
         # Check if user is logged in via session (Flask-Login)
         if current_user.is_authenticated:
             return f(*args, **kwargs)
@@ -847,17 +859,24 @@ def logout():
 # --------------------------
 
 @app.route("/")
-@login_required
 def dashboard():
     """Render the dashboard UI."""
+    from config import FEATURE_AUTH_ENABLED
+    
+    # Only require login if authentication is enabled
+    if FEATURE_AUTH_ENABLED and not current_user.is_authenticated:
+        return redirect(url_for('login'))
+    
     version = int(datetime.utcnow().timestamp())
     return render_template("index.html", version=version)
 
 
 @app.route("/changelog")
-@login_required
 def changelog():
     """Render the changelog page."""
+    from config import FEATURE_AUTH_ENABLED
+    if FEATURE_AUTH_ENABLED and not current_user.is_authenticated:
+        return redirect(url_for('login'))
     return render_template("changelog.html")
 
 
@@ -868,9 +887,11 @@ def health():
 
 
 @app.route("/api/export")
-@login_required
 def export_data():
     """Export all VMs as JSON or CSV."""
+    from config import FEATURE_AUTH_ENABLED
+    if FEATURE_AUTH_ENABLED and not current_user.is_authenticated:
+        return jsonify({"error": "Authentication required"}), 401
     fmt = request.args.get("format", "json").lower()
     vms = VM.query.order_by(VM.hostname).all()
     
@@ -904,9 +925,11 @@ def export_data():
 
 
 @app.route("/logs")
-@login_required
 def view_logs():
     """View access logs (most recent first)."""
+    from config import FEATURE_AUTH_ENABLED
+    if FEATURE_AUTH_ENABLED and not current_user.is_authenticated:
+        return redirect(url_for('login'))
     lines = request.args.get("lines", 100, type=int)
     lines = min(lines, 1000)  # Cap at 1000 lines
     

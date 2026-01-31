@@ -54,6 +54,10 @@ SMS_DASHBOARD_URL = get_sms_dashboard_url()
 ALERT_WARNING_THRESHOLD = int(os.getenv("ALERT_WARNING_THRESHOLD", "80"))
 ALERT_CRITICAL_THRESHOLD = int(os.getenv("ALERT_CRITICAL_THRESHOLD", "90"))
 
+# Authentication Feature Flag
+# Set to False to disable login requirement (not recommended for public deployments)
+FEATURE_AUTH_ENABLED = str(get_general_config("auth_enabled", os.getenv("AUTH_ENABLED", "True"))).lower() == "true"
+
 
 # =============================================================================
 # Feature Flags - Enable/disable features via config file or env vars
