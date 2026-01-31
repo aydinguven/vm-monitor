@@ -177,6 +177,7 @@ run_interactive() {
     USE_RELAY="false"
     RELAY_URL=""
     RELAY_API_KEY=""
+    ENABLE_TWILIO="false"
     TELEGRAM_BOT_TOKEN=""
     TELEGRAM_CHAT_IDS=""
     
@@ -195,7 +196,7 @@ run_interactive() {
         else
             # Internal mode - configure providers directly
             echo -e "  ${CYAN}↳ Select notification channels:${NC}"
-            FEATURE_SMS=$(prompt_yes_no "    Enable SMS (Twilio)?" "n")
+            ENABLE_TWILIO=$(prompt_yes_no "    Enable SMS (Twilio)?" "n")
             FEATURE_TELEGRAM=$(prompt_yes_no "    Enable Telegram?" "y")
             
             if [ "$FEATURE_TELEGRAM" = "true" ]; then
@@ -204,6 +205,11 @@ run_interactive() {
                 TELEGRAM_CHAT_IDS=$(prompt_text "    Chat IDs (comma-separated)" "")
             fi
         fi
+            fi
+        fi
+        
+        # Enable "sms" feature flag if notifications are enabled (controls all scheduled alerts)
+        FEATURE_SMS="true"
     fi
     
     FEATURE_CONTAINERS=$(prompt_yes_no "Display container information?" "y")
@@ -227,7 +233,7 @@ run_interactive() {
             echo -e "    ↳ URL:      ${CYAN}$RELAY_URL${NC}"
         else
             echo -e "    ↳ Mode:     ${CYAN}Internal Config${NC}"
-            echo -e "    ↳ SMS:      $([ "$FEATURE_SMS" = "true" ] && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}")"
+            echo -e "    ↳ SMS:      $([ "$ENABLE_TWILIO" = "true" ] && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}")"
             echo -e "    ↳ Telegram: $([ "$FEATURE_TELEGRAM" = "true" ] && echo -e "${GREEN}✓${NC}" || echo -e "${RED}✗${NC}")"
         fi
     fi
@@ -344,7 +350,7 @@ EOF
             # Internal mode configuration - build providers array
             PROVIDERS_JSON=""
             
-            if [ "$FEATURE_TELEGRAM" = "true" ] && [ "$FEATURE_SMS" = "true" ]; then
+            if [ "$FEATURE_TELEGRAM" = "true" ] && [ "$ENABLE_TWILIO" = "true" ]; then
                 # Both enabled - use providers array
                 sudo bash -c "cat > $INSTALL_DIR/instance/sms_config.json" <<EOF
 {
@@ -375,7 +381,7 @@ EOF
     }
 }
 EOF
-            elif [ "$FEATURE_SMS" = "true" ]; then
+            elif [ "$ENABLE_TWILIO" = "true" ]; then
                 # Twilio only
                 sudo bash -c "cat > $INSTALL_DIR/instance/sms_config.json" <<EOF
 {
