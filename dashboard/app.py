@@ -273,6 +273,7 @@ atexit.register(lambda: scheduler.shutdown())
 # --------------------------
 
 @app.route("/api/send-sms", methods=["POST"])
+@require_auth
 def trigger_sms():
     """Manually trigger SMS alert."""
     from config import get_sms_recipient
@@ -287,6 +288,7 @@ def trigger_sms():
 
 
 @app.route("/api/send-telegram", methods=["POST"])
+@require_auth
 def trigger_telegram():
     """Manually trigger Telegram test notification."""
     from sms_config import get_sms_config
@@ -461,6 +463,7 @@ def save_sms_config_api():
 
 
 @app.route("/api/features")
+@require_auth
 def get_features_api():
     """Get current feature flags."""
     from config import is_feature_enabled, _load_features, _FEATURES_FILE
@@ -487,6 +490,7 @@ def get_features_api():
 
 
 @app.route("/api/features", methods=["POST"])
+@require_auth
 def save_features_api():
     """Save feature flags. Expects JSON body with feature flags."""
     from config import _FEATURES_FILE
@@ -510,6 +514,7 @@ def save_features_api():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/api/schedule")
+@require_auth
 def view_schedule():
     """View scheduled SMS jobs and next run times."""
     from datetime import datetime
