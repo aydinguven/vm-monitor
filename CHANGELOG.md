@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## v1.53 (2026-02-03)
+## v1.53 (2026-02-03) <span class="badge current">Latest</span>
 - **Fix**: Improved Linux memory balloon detection to check for active device binding (fixes false positives on Proxmox).
 
 ## v1.52 (2026-02-02)
