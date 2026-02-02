@@ -35,7 +35,7 @@ if not IS_WINDOWS:
 # Configuration
 # =============================================================================
 
-AGENT_VERSION = "1.52"
+AGENT_VERSION = "1.53"
 STRESS_DURATION = 75  # Duration in seconds for stress tests
 
 # Config loader
@@ -330,16 +330,16 @@ def detect_balloon() -> bool:
             return "Balloon" in result.stdout
         else:
             # Linux: Check if virtio_balloon module is loaded
-            # Method 1: Check modules list
-            if os.path.exists("/proc/modules"):
-                with open("/proc/modules", "r") as f:
-                    if "virtio_balloon" in f.read():
+            # Method 2: Check sysfs for active device binding
+            # Just checking if driver exists is not enough (module might be loaded but unused)
+            driver_path = "/sys/bus/virtio/drivers/virtio_balloon"
+            if os.path.exists(driver_path):
+                # Check if any virtio device is actually bound to this driver
+                # Look for entries starting with 'virtio' (e.g. virtio0, virtio1)
+                for entry in os.listdir(driver_path):
+                    if entry.startswith("virtio"):
                         return True
-            
-            # Method 2: Check sysfs
-            if os.path.exists("/sys/bus/virtio/drivers/virtio_balloon"):
-                return True
-                
+                        
             return False
             
     except Exception as e:

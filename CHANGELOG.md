@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.53 (2026-02-03)
+- **Fix**: Improved Linux memory balloon detection to check for active device binding (fixes false positives on Proxmox).
+
 ## v1.52 (2026-02-02)
 - **Feature**: Memory Ballooning Detection!
 - **Agent**: Detects VirtIO balloon driver (Linux) or Windows Balloon Driver.
