@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.52 (2026-02-02)
+- **Feature**: Memory Ballooning Detection!
+- **Agent**: Detects VirtIO balloon driver (Linux) or Windows Balloon Driver.
+- **UI**: Added 🎈 indicator for balloon-enabled VMs.
+- **Alerts**: Surpresses RAM alerts if ballooning is active to prevent false positives.
+- **Migration**: Added `migrate_add_balloon.py` for database schema updates.
+
+## v1.51 (2026-02-02)
+- **Repo**: Bumped version for agent auto-updates.
+- **Fix**: Minor improvements to packaging.
+
 ## v1.50 (2026-01-29)
 - **Rename**: Project renamed from `vm-agent-dashboard` to `vm-monitor`. Service/user/paths updated.
 - **Feature**: Telegram notifications (direct bot or via relay service).
