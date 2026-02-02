@@ -94,6 +94,9 @@ class VM(db.Model):
     http_rtt_ms = db.Column(db.Float)         # HTTP POST round-trip time in milliseconds
     latency_updated_at = db.Column(db.DateTime)  # When latency was last updated
     
+    # v1.51 - Balloon Detection
+    balloon_enabled = db.Column(db.Boolean, default=False)  # Memory ballooning detected
+
     # Relationship to metrics history
     metrics = db.relationship("Metric", backref="vm", lazy="dynamic", cascade="all, delete-orphan")
     
@@ -115,6 +118,7 @@ class VM(db.Model):
             "ram_total_gb": self.ram_total_gb or 0,
             "ram_used_gb": self.ram_used_gb or 0,
             "ram_percent": self.ram_percent or 0,
+            "balloon_enabled": self.balloon_enabled or False,
             "disk_usage": self.disk_usage or {},
             # Computed status (offline if no data for 5 minutes)
             "online": seconds_ago < 300,
@@ -159,6 +163,7 @@ class VM(db.Model):
             "ram_total_gb": self.ram_total_gb or 0,
             "ram_used_gb": self.ram_used_gb or 0,
             "ram_percent": self.ram_percent or 0,
+            "balloon_enabled": self.balloon_enabled or False,
             "disk_usage": self.disk_usage or {},
             "online": seconds_ago < 300,
             "seconds_ago": seconds_ago,

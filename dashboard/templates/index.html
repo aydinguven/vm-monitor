@@ -814,18 +814,23 @@
         function hasAlerts(vm) {
             if (!vm.online) return false;
             const maxDisk = Object.values(vm.disk_usage || {}).reduce((max, d) => Math.max(max, d.percent), 0);
-            // Use cpu_avg (30s sustained) for CPU, ram_percent for RAM
-            return vm.cpu_avg >= 80 || vm.ram_percent >= 80 || maxDisk >= 80;
+            // Use cpu_avg (30s sustained) for CPU, ram_percent for RAM (skip if ballooning)
+            const ramAlert = vm.balloon_enabled ? false : vm.ram_percent >= 80;
+            return vm.cpu_avg >= 80 || ramAlert || maxDisk >= 80;
         }
 
         // v1.28.7 - Get alert level based on sustained values
         function getAlertLevel(vm) {
             if (!vm.online) return 'none';
             const maxDisk = Object.values(vm.disk_usage || {}).reduce((max, d) => Math.max(max, d.percent), 0);
+
+            const ramCritical = vm.balloon_enabled ? false : vm.ram_percent >= 90;
+            const ramWarning = vm.balloon_enabled ? false : vm.ram_percent >= 80;
+
             // 90%+ sustained = ALARM
-            if (vm.cpu_avg >= 90 || vm.ram_percent >= 90 || maxDisk >= 90) return 'alarm';
+            if (vm.cpu_avg >= 90 || ramCritical || maxDisk >= 90) return 'alarm';
             // 80%+ sustained = WARNING
-            if (vm.cpu_avg >= 80 || vm.ram_percent >= 80 || maxDisk >= 80) return 'warning';
+            if (vm.cpu_avg >= 80 || ramWarning || maxDisk >= 80) return 'warning';
             return 'none';
         }
 
@@ -836,8 +841,12 @@
             // Show sustained CPU average for alerts
             if (vm.cpu_avg >= 90) alerts.push(`CPU ${vm.cpu_avg.toFixed(0)}% avg 🚨`);
             else if (vm.cpu_avg >= 80) alerts.push(`CPU ${vm.cpu_avg.toFixed(0)}% avg ⚠️`);
-            if (vm.ram_percent >= 90) alerts.push(`RAM ${vm.ram_percent.toFixed(0)}% 🚨`);
-            else if (vm.ram_percent >= 80) alerts.push(`RAM ${vm.ram_percent.toFixed(0)}% ⚠️`);
+
+            if (!vm.balloon_enabled) {
+                if (vm.ram_percent >= 90) alerts.push(`RAM ${vm.ram_percent.toFixed(0)}% 🚨`);
+                else if (vm.ram_percent >= 80) alerts.push(`RAM ${vm.ram_percent.toFixed(0)}% ⚠️`);
+            }
+
             if (maxDisk >= 90) alerts.push(`Disk ${maxDisk.toFixed(0)}% 🚨`);
             else if (maxDisk >= 80) alerts.push(`Disk ${maxDisk.toFixed(0)}% ⚠️`);
             return alerts;
@@ -1286,6 +1295,7 @@
                         <div class="vm-status ${vm.online ? 'online' : 'offline'}"></div>
                         <h3 class="vm-hostname">${vm.hostname}</h3>
                         <span class="vm-cloud" title="${vm.cloud_provider}">${getCloudIcon(vm.cloud_provider)}</span>
+                        ${vm.balloon_enabled ? '<span class="vm-cloud" title="Memory Ballooning Active" style="cursor:help">🎈</span>' : ''}
                     </div>
                     
                     <div class="vm-metrics">

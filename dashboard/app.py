@@ -208,13 +208,14 @@ def send_sms_alert():
                 warning_types.add("CPU")
                 warning_count += 1
             
-            # Check RAM
-            if vm.ram_percent >= ALERT_CRITICAL_THRESHOLD:
-                alert_types.add("RAM")
-                alert_count += 1
-            elif vm.ram_percent >= ALERT_WARNING_THRESHOLD:
-                warning_types.add("RAM")
-                warning_count += 1
+            # Check RAM (skip if ballooning is enabled)
+            if not vm.balloon_enabled:
+                if vm.ram_percent >= ALERT_CRITICAL_THRESHOLD:
+                    alert_types.add("RAM")
+                    alert_count += 1
+                elif vm.ram_percent >= ALERT_WARNING_THRESHOLD:
+                    warning_types.add("RAM")
+                    warning_count += 1
             
             # Check Disk (any partition)
             if vm.disk_usage:
@@ -582,6 +583,7 @@ def receive_metrics():
     vm.ram_total_gb = data.get("ram_total_gb", 0)
     vm.ram_used_gb = data.get("ram_used_gb", 0)
     vm.ram_percent = data.get("ram_percent", 0)
+    vm.balloon_enabled = data.get("balloon_enabled", False)
     vm.disk_usage = data.get("disk_usage", {})
     
     # OS & Network fields

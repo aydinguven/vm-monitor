@@ -319,6 +319,33 @@ def get_memory_metrics() -> dict:
         "ram_percent": round(mem.percent, 2)
     }
 
+def detect_balloon() -> bool:
+    """Detect if VirtIO memory ballooning is active."""
+    try:
+        if IS_WINDOWS:
+            # Check for VirtIO Balloon Driver via PowerShell/WMI
+            cmd = ["powershell", "-NoProfile", "-Command", 
+                   "Get-WmiObject Win32_PnPEntity | Where-Object { $_.Name -like '*Balloon*' }"]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+            return "Balloon" in result.stdout
+        else:
+            # Linux: Check if virtio_balloon module is loaded
+            # Method 1: Check modules list
+            if os.path.exists("/proc/modules"):
+                with open("/proc/modules", "r") as f:
+                    if "virtio_balloon" in f.read():
+                        return True
+            
+            # Method 2: Check sysfs
+            if os.path.exists("/sys/bus/virtio/drivers/virtio_balloon"):
+                return True
+                
+            return False
+            
+    except Exception as e:
+        logger.debug(f"Error detecting balloon driver: {e}")
+        return False
+
 
 def get_disk_metrics() -> dict:
     """Get disk usage for all mounted partitions."""
@@ -1070,6 +1097,7 @@ def collect_metrics() -> dict:
         "ram_total_gb": memory["ram_total_gb"],
         "ram_used_gb": memory["ram_used_gb"],
         "ram_percent": memory["ram_percent"],
+        "balloon_enabled": detect_balloon(),  # v1.51 - Balloon detection
         # Disk
         "disk_usage": disk,
         # OS
