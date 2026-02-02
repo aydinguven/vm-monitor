@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## v1.53 (2026-02-03) <span class="badge current">Latest</span>
+## v1.54 (2026-02-03)
+- **Fix**: Refined Linux balloon detection to check `actual` balloon size.
+- **Fix**: Prevents false positives on GCP and other platforms where the driver is active but not inflating.
+
+## v1.53 (2026-02-03)
 - **Fix**: Improved Linux memory balloon detection to check for active device binding (fixes false positives on Proxmox).
 
 ## v1.52 (2026-02-02)

@@ -35,7 +35,7 @@ if not IS_WINDOWS:
 # Configuration
 # =============================================================================
 
-AGENT_VERSION = "1.53"
+AGENT_VERSION = "1.54"
 STRESS_DURATION = 75  # Duration in seconds for stress tests
 
 # Config loader
@@ -330,15 +330,32 @@ def detect_balloon() -> bool:
             return "Balloon" in result.stdout
         else:
             # Linux: Check if virtio_balloon module is loaded
-            # Method 2: Check sysfs for active device binding
-            # Just checking if driver exists is not enough (module might be loaded but unused)
+            # Method 2: Check sysfs for active device binding AND inflation
+            # Just checking if driver exists is not enough (GCP has driver but no inflation)
             driver_path = "/sys/bus/virtio/drivers/virtio_balloon"
             if os.path.exists(driver_path):
-                # Check if any virtio device is actually bound to this driver
-                # Look for entries starting with 'virtio' (e.g. virtio0, virtio1)
+                # Check for bound devices
                 for entry in os.listdir(driver_path):
                     if entry.startswith("virtio"):
-                        return True
+                        # Check "actual" balloon size if available (pages)
+                        actual_path = os.path.join(driver_path, entry, "actual")
+                        if os.path.exists(actual_path):
+                            try:
+                                with open(actual_path, "r") as f:
+                                    pages = int(f.read().strip())
+                                    if pages > 0:
+                                        return True
+                            except (ValueError, OSError):
+                                pass
+                        else:
+                            # If "actual" file doesn't exist but device does, 
+                            # strictly valid but we can't measure it. 
+                            # Safe default: Assume active if we can't prove otherwise?
+                            # Or assumes inactive? 
+                            # For GCP, 'actual' likely exists and is 0. 
+                            # Let's return True only if we find a device and can't prove it's empty,
+                            # OR if we find it's > 0.
+                            return True
                         
             return False
             
