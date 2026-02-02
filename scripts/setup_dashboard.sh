@@ -205,8 +205,6 @@ run_interactive() {
                 TELEGRAM_CHAT_IDS=$(prompt_text "    Chat IDs (comma-separated)" "")
             fi
         fi
-            fi
-        fi
         
         # Enable "sms" feature flag if notifications are enabled (controls all scheduled alerts)
         FEATURE_SMS="true"
