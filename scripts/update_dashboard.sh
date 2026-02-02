@@ -65,6 +65,7 @@ print_step "Updating code..."
 find "$INSTALL_DIR" -mindepth 1 -maxdepth 1 -not -name "venv" -not -name "instance" -exec rm -rf {} +
 # Copy new code
 cp -r "$SOURCE_ROOT/dashboard/"* "$INSTALL_DIR/"
+cp "$SOURCE_ROOT/dashboard/migrate_add_balloon.py" "$INSTALL_DIR/" 2>/dev/null || true
 
 # 3b. Copy Agent Files for Auto-Update (v1.46+)
 print_step "Packaging agent for auto-update..."
