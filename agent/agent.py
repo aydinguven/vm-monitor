@@ -483,6 +483,7 @@ def get_cloud_provider() -> str:
         ("http://169.254.169.254/metadata/instance?api-version=2021-02-01", 
          {"Metadata": "true"}, "Azure"),
         ("http://169.254.169.254/opc/v1/instance/", {}, "Oracle Cloud"),
+        ("http://169.254.42.42/conf", {}, "Scaleway"),
     ]
     
     for url, headers, provider in cloud_checks:
@@ -554,6 +555,7 @@ def get_cloud_provider() -> str:
         ("linode", "Linode"),
         ("vultr", "Vultr"),
         ("hetzner", "Hetzner"),
+        ("scaleway", "Scaleway"),
     ]
     
     for pattern, provider in dmi_mapping:
