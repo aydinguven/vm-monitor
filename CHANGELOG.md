@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.55 (2026-02-05)
+- **Feature**: GitHub Container Registry (GHCR) workflow for Docker images.
+- **DevOps**: Added Dockerfiles for dashboard and agent components.
+- **DevOps**: Images auto-published on release to `ghcr.io`.
+
 ## v1.54 (2026-02-03)
 - **Fix**: Refined Linux balloon detection to check `actual` balloon size.
 - **Fix**: Prevents false positives on GCP and other platforms where the driver is active but not inflating.
