@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.ps1
+*.bat
+*.exe
+.git
+.gitignore
+.DS_Store
+Thumbs.db
+requirements-windows.txt
