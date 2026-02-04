@@ -51,6 +51,13 @@ git clone https://github.com/aydinguven/vm-monitor.git
 cd vm-monitor && ./scripts/setup_dashboard.sh
 ```
 
+**Or with Docker:**
+```bash
+docker run -d -p 5000:5000 \
+  -v vm-monitor-data:/app/instance \
+  ghcr.io/aydinguven/vm-monitor-dashboard:latest
+```
+
 ### 2. Install Agent on VMs (1 min each)
 
 **Linux:**
@@ -69,6 +76,16 @@ cd vm-monitor && ./scripts/setup.sh
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/aydinguven/vm-monitor/main/agent/setup.ps1" -OutFile setup.ps1
 .\setup.ps1
 ```
+
+**Docker (for containerized hosts):**
+```bash
+docker run -d --name vm-agent \
+  --pid=host --net=host \
+  -v /etc/vm-agent:/etc/vm-agent:ro \
+  ghcr.io/aydinguven/vm-monitor-agent:latest
+```
+
+> 💡 Create `/etc/vm-agent/agent_config.json` with your dashboard URL and API key first.
 
 **That's it.** Your VM will appear in the dashboard within 30 seconds.
 
