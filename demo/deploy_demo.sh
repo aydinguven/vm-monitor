@@ -82,7 +82,7 @@ Type=simple
 User=$(whoami)
 WorkingDirectory=$TARGET_DIR/demo
 Environment="PATH=$TARGET_DIR/venv/bin"
-ExecStart=$TARGET_DIR/venv/bin/gunicorn -w 2 -b 0.0.0.0:5000 demo_app:app
+ExecStart=$TARGET_DIR/venv/bin/gunicorn -w 2 -b 0.0.0.0:5011 demo_app:app
 Restart=always
 RestartSec=5
 
