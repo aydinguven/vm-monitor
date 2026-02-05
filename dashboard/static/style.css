@@ -190,7 +190,7 @@ header {
 
 .vm-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--spacing-lg);
 }
 
@@ -246,6 +246,7 @@ header {
     font-size: 1rem;
     font-weight: 600;
     flex-grow: 1;
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -330,6 +331,8 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
     margin-top: var(--spacing-lg);
     padding-top: var(--spacing-md);
     border-top: 1px solid var(--border-color);
@@ -338,6 +341,11 @@ header {
 .vm-lastseen {
     font-size: 0.75rem;
     color: var(--text-muted);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .btn-details {
@@ -527,5 +535,56 @@ header {
     
     .modal-metrics {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 400px) {
+    .container {
+        padding: var(--spacing-sm);
+    }
+    
+    .vm-card {
+        padding: var(--spacing-md);
+    }
+    
+    .vm-header {
+        gap: var(--spacing-xs);
+    }
+    
+    .vm-hostname {
+        font-size: 0.9rem;
+    }
+    
+    .vm-cloud {
+        font-size: 1rem;
+    }
+    
+    .metric-label {
+        font-size: 0.7rem;
+    }
+    
+    .metric-value {
+        font-size: 0.8rem;
+    }
+    
+    .metric-detail {
+        font-size: 0.7rem;
+    }
+    
+    .vm-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .vm-lastseen {
+        text-align: center;
+        white-space: normal;
+    }
+    
+    .btn-details {
+        width: 100%;
+        text-align: center;
+        padding: var(--spacing-sm) var(--spacing-md);
     }
 }

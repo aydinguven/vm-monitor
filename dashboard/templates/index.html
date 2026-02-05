@@ -98,11 +98,20 @@
         [data-ui="mobile"] .vm-card {
             padding: 22px;
             border-radius: 16px;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        [data-ui="mobile"] .vm-header {
+            min-width: 0;
         }
 
         [data-ui="mobile"] .vm-hostname {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             font-weight: 600;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         [data-ui="mobile"] .vm-card .metric-label {
@@ -116,10 +125,32 @@
 
         [data-ui="mobile"] .vm-card .metric-detail {
             font-size: 1rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         [data-ui="mobile"] .metric {
             padding: 12px 0;
+        }
+
+        [data-ui="mobile"] .vm-footer {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        [data-ui="mobile"] .vm-lastseen {
+            font-size: 1rem;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        [data-ui="mobile"] .btn-details {
+            min-height: 48px;
+            padding: 12px 20px;
+            font-size: 1rem;
         }
 
         [data-ui="mobile"] .progress-bar {
@@ -244,6 +275,7 @@
             display: flex;
             gap: 15px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .search-box {
