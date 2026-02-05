@@ -43,9 +43,10 @@ echo "📦 Creating virtual environment..."
 python3 -m venv "$TARGET_DIR/venv"
 source "$TARGET_DIR/venv/bin/activate"
 
-# Install dependencies
+# Install dependencies from requirements.txt
 echo "📥 Installing dependencies..."
-pip install -q flask flask-sqlalchemy flask-migrate flask-login gunicorn apscheduler requests pytz
+pip install -q -r "$TARGET_DIR/dashboard/requirements.txt"
+pip install -q gunicorn pytz
 
 # Generate demo data
 echo "🔧 Generating demo data..."
