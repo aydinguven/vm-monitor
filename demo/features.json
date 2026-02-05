@@ -5,5 +5,6 @@
     "containers": true,
     "pods": true,
     "auto_update": false,
-    "latency": false
+    "latency": true,
+    "auth_enabled": false
 }

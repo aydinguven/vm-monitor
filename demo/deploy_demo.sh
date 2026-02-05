@@ -67,7 +67,8 @@ cat > "$TARGET_DIR/dashboard/instance/config.json" <<EOF
   "database_url": "sqlite:///$TARGET_DIR/dashboard/instance/demo_db.sqlite",
   "timezone": "UTC",
   "demo_mode": true,
-  "metric_retention_hours": 168
+  "metric_retention_hours": 168,
+  "auth_enabled": false
 }
 EOF
 
