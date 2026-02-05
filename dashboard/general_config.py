@@ -52,3 +52,21 @@ def get_general_config(key: str, default: Any = None) -> Any:
     """
     config = _load_config()
     return config.get(key, default)
+
+
+def save_general_config(config: dict) -> None:
+    """Save configuration to instance/config.json."""
+    global _config_cache, _config_mtime
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=2)
+    # Invalidate cache
+    _config_cache = None
+    _config_mtime = 0
+    logger.info(f"Saved general config to {CONFIG_FILE}")
+
+
+def is_setup_required() -> bool:
+    """Check if first-time setup is required (no config.json exists)."""
+    return not CONFIG_FILE.exists()
+

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.56 (2026-02-05)
+- **Feature**: Web-based Setup Wizard for Docker deployments.
+- **UX**: First-time users are automatically redirected to `/setup` for configuration.
+- **Setup**: 4-step wizard covering Security, Authentication, Features, and Review.
+- **DevOps**: Multi-arch Docker images (amd64 + arm64) now supported.
+
 ## v1.55 (2026-02-05)
 - **Feature**: GitHub Container Registry (GHCR) workflow for Docker images.
 - **DevOps**: Added Dockerfiles for dashboard and agent components.

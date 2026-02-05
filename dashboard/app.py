@@ -802,6 +802,136 @@ def get_command_status(cmd_id):
 
 
 # --------------------------
+# Setup Wizard Routes (Docker first-run)
+# --------------------------
+
+@app.route('/setup', methods=['GET', 'POST'])
+def setup_wizard():
+    """First-time setup wizard for Docker deployments."""
+    import secrets
+    from general_config import is_setup_required, save_general_config, CONFIG_DIR
+    
+    # If already configured, redirect to dashboard
+    if not is_setup_required():
+        return redirect(url_for('dashboard'))
+    
+    error = None
+    
+    if request.method == 'POST':
+        # Collect form data
+        api_key = request.form.get('api_key', '').strip()
+        secret_key = request.form.get('secret_key', '').strip()
+        auth_enabled = request.form.get('auth_enabled') == 'on'
+        admin_username = request.form.get('admin_username', '').strip()
+        admin_password = request.form.get('admin_password', '')
+        admin_password_confirm = request.form.get('admin_password_confirm', '')
+        
+        # Feature flags
+        feature_commands = request.form.get('feature_commands') == 'on'
+        feature_alerts = request.form.get('feature_alerts') == 'on'
+        feature_containers = request.form.get('feature_containers') == 'on'
+        feature_pods = request.form.get('feature_pods') == 'on'
+        
+        # Validation
+        if not api_key:
+            error = "API Key is required"
+        elif not secret_key:
+            error = "Secret Key is required"
+        elif auth_enabled and not admin_username:
+            error = "Admin username is required when authentication is enabled"
+        elif auth_enabled and len(admin_password) < 6:
+            error = "Password must be at least 6 characters"
+        elif auth_enabled and admin_password != admin_password_confirm:
+            error = "Passwords do not match"
+        
+        if error:
+            return render_template('setup.html', error=error, 
+                                   api_key=api_key, secret_key=secret_key)
+        
+        try:
+            # Create config directory if needed
+            CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+            
+            # Save main config
+            config = {
+                "api_key": api_key,
+                "secret_key": secret_key,
+                "auth_enabled": auth_enabled,
+                "timezone": "UTC"
+            }
+            save_general_config(config)
+            
+            # Save features config
+            features = {
+                "commands": feature_commands,
+                "alerts": feature_alerts,
+                "containers": feature_containers,
+                "pods": feature_pods,
+                "sms": False,
+                "auto_update": True,
+                "latency": False
+            }
+            features_file = CONFIG_DIR / "features.json"
+            import json
+            with open(features_file, "w") as f:
+                json.dump(features, f, indent=2)
+            
+            # Initialize database and create admin user if auth enabled
+            with app.app_context():
+                db.create_all()
+                
+                if auth_enabled and admin_username and admin_password:
+                    # Create admin user
+                    existing = User.query.filter_by(username=admin_username).first()
+                    if not existing:
+                        admin = User(username=admin_username)
+                        admin.set_password(admin_password)
+                        db.session.add(admin)
+                        db.session.commit()
+                        app.logger.info(f"Setup: Created admin user '{admin_username}'")
+            
+            app.logger.info("Setup: Configuration completed successfully")
+            
+            # Redirect to login if auth enabled, otherwise dashboard
+            if auth_enabled:
+                flash('Setup complete! Please log in with your admin credentials.', 'info')
+                return redirect(url_for('login'))
+            else:
+                return redirect(url_for('dashboard'))
+                
+        except Exception as e:
+            app.logger.error(f"Setup error: {e}")
+            error = f"Setup failed: {str(e)}"
+            return render_template('setup.html', error=error,
+                                   api_key=api_key, secret_key=secret_key)
+    
+    # GET request - show setup form with generated keys
+    import secrets
+    return render_template('setup.html', 
+                           api_key=secrets.token_hex(16),
+                           secret_key=secrets.token_hex(16))
+
+
+@app.before_request
+def check_setup_required():
+    """Redirect to setup wizard if not configured (Docker first-run)."""
+    from general_config import is_setup_required
+    
+    # Skip check for setup route, static files, and health check
+    if request.endpoint in ('setup_wizard', 'static', 'health'):
+        return None
+    
+    # Skip for API endpoints that agents need
+    if request.path.startswith('/api/metrics'):
+        return None
+    
+    if is_setup_required():
+        return redirect(url_for('setup_wizard'))
+    
+    return None
+
+
+# --------------------------
 # Authentication Routes
 # --------------------------
 
