@@ -11,19 +11,541 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <style>
+        /* v1.20 - Theme Variables */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-card: #1a1a24;
+            --bg-hover: #252532;
+            --text-primary: #f0f0f0;
+            --text-secondary: #888;
+            --accent: #6366f1;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f5f5f7;
+            --bg-card: #ffffff;
+            --bg-hover: #e8e8ec;
+            --text-primary: #1a1a24;
+            --text-secondary: #666;
+        }
+
+        /* v1.31 - Mobile UI Mode - BIG TEXT & BUTTONS */
+        [data-ui="mobile"] {
+            font-size: 20px;
+        }
+
+        [data-ui="mobile"] .container {
+            padding: 15px;
+        }
+
+        [data-ui="mobile"] .dashboard-header {
+            flex-direction: column;
+            gap: 12px;
+            padding: 20px 0;
+        }
+
+        [data-ui="mobile"] .dashboard-header h1 {
+            font-size: 2.2rem;
+        }
+
+        [data-ui="mobile"] .dashboard-header .stats {
+            font-size: 1.2rem;
+        }
+
+        [data-ui="mobile"] .controls-bar {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        [data-ui="mobile"] .search-box {
+            width: 100%;
+            padding: 18px 20px;
+            font-size: 20px;
+            border-radius: 12px;
+        }
+
+        [data-ui="mobile"] .header-controls {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        [data-ui="mobile"] .header-controls .btn {
+            min-height: 60px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        [data-ui="mobile"] .filter-dropdown {
+            display: none;
+        }
+
+        [data-ui="mobile"] .mobile-filter-btn {
+            display: flex !important;
+        }
+
+        [data-ui="mobile"] .vm-grid {
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        [data-ui="mobile"] .vm-card {
+            padding: 22px;
+            border-radius: 16px;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        [data-ui="mobile"] .vm-header {
+            min-width: 0;
+        }
+
+        [data-ui="mobile"] .vm-hostname {
+            font-size: 1.4rem;
+            font-weight: 600;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        [data-ui="mobile"] .vm-card .metric-label {
+            font-size: 1.15rem;
+        }
+
+        [data-ui="mobile"] .vm-card .metric-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        [data-ui="mobile"] .vm-card .metric-detail {
+            font-size: 1rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        [data-ui="mobile"] .metric {
+            padding: 12px 0;
+        }
+
+        [data-ui="mobile"] .vm-footer {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        [data-ui="mobile"] .vm-lastseen {
+            font-size: 1rem;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        [data-ui="mobile"] .btn-details {
+            min-height: 48px;
+            padding: 12px 20px;
+            font-size: 1rem;
+        }
+
+        [data-ui="mobile"] .progress-bar {
+            height: 14px;
+            border-radius: 7px;
+        }
+
+        [data-ui="mobile"] .alert-badge {
+            font-size: 1rem;
+            padding: 8px 14px;
+            border-radius: 8px;
+        }
+
+        [data-ui="mobile"] .modal-content {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 0;
+            margin: 0;
+            font-size: 1.2rem;
+            padding: 20px;
+        }
+
+        [data-ui="mobile"] .modal-close {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+        }
+
+        [data-ui="mobile"] .modal-grid {
+            grid-template-columns: 1fr;
+        }
+
+        [data-ui="mobile"] .chart-container {
+            height: 200px;
+        }
+
+        [data-ui="mobile"] .btn {
+            min-height: 54px;
+            font-size: 1.1rem;
+            padding: 14px 20px;
+        }
+
+        [data-ui="mobile"] .alerts-section {
+            padding: 18px;
+            border-radius: 14px;
+        }
+
+        [data-ui="mobile"] .alerts-section h3 {
+            font-size: 1.3rem;
+        }
+
+        /* Mobile Bottom Sheet - Hidden by default */
+        #mobile-filter-sheet {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: var(--bg-card);
+            border-radius: 16px 16px 0 0;
+            padding: 20px;
+            z-index: 200 !important;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(100%) !important;
+            transition: transform 0.3s ease;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        #mobile-filter-sheet.open {
+            transform: translateY(0) !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+
+        #mobile-filter-backdrop {
+            display: none !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 199 !important;
+        }
+
+        #mobile-filter-backdrop.open {
+            display: block !important;
+        }
+
+        .mobile-bottom-sheet h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+        }
+
+        .mobile-bottom-sheet .filter-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1rem;
+            gap: 10px;
+        }
+
+        .mobile-bottom-sheet input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .mobile-filter-btn {
+            display: none;
+            min-height: 44px;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* v1.20 - Header Controls */
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 15px;
+            color: var(--text-primary);
+            width: 200px;
+            font-size: 0.9em;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 15px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* v1.20 - Alert Styling */
+        .vm-card.alert {
+            border: 2px solid var(--danger);
+            animation: pulse-alert 2s infinite;
+        }
+
+        @keyframes pulse-alert {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.2);
+            }
+        }
+
+        .alert-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+
+        .alert-badge.warning {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .vm-card.offline {
+            opacity: 0.6;
+            filter: grayscale(0.3);
+        }
+
+        /* v1.20 - New Sections */
+        .section-title {
+            font-size: 0.9em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 20px 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-box .label {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .stat-box.warning .value {
+            color: var(--warning);
+        }
+
+        .stat-box.danger .value {
+            color: var(--danger);
+        }
+
+        /* v1.20 - Charts */
+        .chart-container {
+            height: 200px;
+            margin: 15px 0;
+        }
+
+        /* Extra styles for new features */
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-group label {
+            display: block;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .info-group div {
+            font-family: monospace;
+            color: #eee;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .badge.online {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        .badge.offline {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .badge.cloud {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .badge.os {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+        }
+
+        .badge.status-ok {
+            color: #4ade80;
+        }
+
+        .badge.status-err {
+            color: #f87171;
+        }
+
+        .table-scroll {
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow-x: hidden;
+            /* No horizontal scroll */
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            table-layout: fixed;
+            /* Fixed layout for consistent column widths */
+        }
+
+        .data-table td,
+        .data-table th {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 8px;
+            background: #1a1a24;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .data-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .mono {
+            font-family: monospace;
+            color: #aaa;
+        }
+
+        .debug-section {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-text {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.8em;
+            text-decoration: underline;
+            padding: 0;
+        }
+
+        .btn-text:hover {
+            color: #eee;
+        }
+
+        #raw-data {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.75em;
+            color: #4ade80;
+            overflow-x: auto;
+            margin-top: 10px;
+            max-height: 300px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container">
         <header>
             <div class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="2" y="3" width="20" height="14" rx="4" />
-                        <path d="M8 21h8M12 17v4" />
-                    </svg>
-                </div>
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <path d="M8 21h8M12 17v4" />
+                </svg>
                 <h1>VM Monitor</h1>
             </div>
             <div class="header-info">
@@ -45,40 +567,38 @@
         </header>
 
         <!-- v1.20 - Controls Bar -->
-        <div class="controls-bar">
-            <div class="controls-left">
+        <div class="controls-bar"
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <input type="text" id="search-box" class="search-box" placeholder="🔍 Search VMs...">
                 <!-- v1.30 - Custom Dropdown Filters with Checkboxes -->
                 <div class="filter-dropdown" style="position: relative;">
                     <button class="btn" onclick="toggleDropdown('provider-dropdown')" style="min-width: 120px;">
                         Provider ▼
                     </button>
-                    <div id="provider-dropdown" class="dropdown-menu"></div>
+                    <div id="provider-dropdown" class="dropdown-menu"
+                        style="display: none; position: absolute; top: 100%; left: 0; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; min-width: 150px; z-index: 100; max-height: 200px; overflow-y: auto;">
+                    </div>
                 </div>
                 <div class="filter-dropdown" style="position: relative;">
                     <button class="btn" onclick="toggleDropdown('os-dropdown')" style="min-width: 100px;">
                         OS ▼
                     </button>
-                    <div id="os-dropdown" class="dropdown-menu"></div>
+                    <div id="os-dropdown" class="dropdown-menu"
+                        style="display: none; position: absolute; top: 100%; left: 0; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; min-width: 150px; z-index: 100; max-height: 200px; overflow-y: auto;">
+                    </div>
                 </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="filter-alerts" onchange="applyFilters()">
-                    <div class="toggle-slider"></div>
-                    Alerts Only
+                <label style="display: flex; align-items: center; gap: 5px; font-size: 0.85em; cursor: pointer;">
+                    <input type="checkbox" id="filter-alerts" onchange="applyFilters()"> Alerts Only
                 </label>
             </div>
             <div class="header-controls">
-                <button class="btn mobile-filter-btn btn-primary" onclick="openMobileFilters()">
-                              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                              </svg>
-                              Filters
-                          </button>
+                <button class="btn mobile-filter-btn" onclick="openMobileFilters()">🔍 Filters</button>
                 <button class="btn" id="send-sms-btn" onclick="sendSMS()">📱 Send SMS</button>
                 <button class="btn" id="send-telegram-btn" onclick="sendTelegram()">📨 Telegram</button>
-                <button class="btn btn-icon" title="Export JSON" onclick="exportData('json')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
-                <button class="btn btn-icon" title="Export CSV" onclick="exportData('csv')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></button>
-                <button class="btn btn-icon" title="Toggle Theme" onclick="toggleTheme()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+                <button class="btn" onclick="exportData('json')">📥 JSON</button>
+                <button class="btn" onclick="exportData('csv')">📥 CSV</button>
+                <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
                 <button class="btn" id="ui-mode-btn" onclick="toggleUIMode()">📱 Mobile</button>
             </div>
         </div>
@@ -100,22 +620,18 @@
         </div>
 
         <!-- v1.28.3 - Alerts Summary Section (v1.30 - Collapsible) -->
-        <div id="alerts-section" class="alerts-section hidden">
-            <div class="alerts-header" onclick="toggleAlertsSection()">
-                <h3>
-                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                        <line x1="12" y1="9" x2="12" y2="13"/>
-                        <line x1="12" y1="17" x2="12.01" y2="17"/>
-                    </svg>
-                    Active Alerts
-                    <span id="alerts-count" class="alerts-count">0</span>
-                </h3>
-                <div style="display: flex; align-items: center;">
-                    <button id="alerts-toggle" class="btn" style="padding: 4px 10px; font-size: 0.85rem;">▼ Minimize</button>
+        <div id="alerts-section" class="alerts-section hidden"
+            style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;"
+                onclick="toggleAlertsSection()">
+                <h3 style="margin: 0; color: #ef4444;">⚠️ Active Alerts</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span id="alerts-count" class="badge" style="background: #ef4444; color: white;">0</span>
+                    <button id="alerts-toggle" class="btn" style="padding: 4px 10px; font-size: 0.75em;">▼
+                        Minimize</button>
                 </div>
             </div>
-            <div id="alerts-list" class="alerts-list"></div>
+            <div id="alerts-list" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
         </div>
 
         <div id="vm-grid" class="vm-grid"></div>
@@ -133,12 +649,14 @@
     <div id="mobile-filter-backdrop" class="mobile-bottom-sheet-backdrop" onclick="closeMobileFilters()"></div>
     <div id="mobile-filter-sheet" class="mobile-bottom-sheet">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; font-size: 1.4rem; color: var(--text-primary);">Filters</h3>
-            <button class="btn btn-primary" onclick="closeMobileFilters()">Done</button>
+            <h3 style="margin: 0; font-size: 1.4rem;">Filters</h3>
+            <button class="btn" onclick="closeMobileFilters()"
+                style="padding: 12px 24px; font-size: 1.1rem;">Done</button>
         </div>
         <div id="mobile-filter-content">
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 1rem; margin-bottom: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Provider</label>
+                <label
+                    style="display: block; font-size: 1.1rem; margin-bottom: 10px; color: var(--text-secondary);">Provider</label>
                 <select id="mobile-provider-select"
                     style="width: 100%; padding: 16px; font-size: 1.2rem; border-radius: 12px; background: var(--bg-primary); color: var(--text-primary); border: 2px solid rgba(255,255,255,0.2);"
                     onchange="applyMobileFilters()">
@@ -146,21 +664,24 @@
                 </select>
             </div>
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 1rem; margin-bottom: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Operating System</label>
+                <label
+                    style="display: block; font-size: 1.1rem; margin-bottom: 10px; color: var(--text-secondary);">Operating
+                    System</label>
                 <select id="mobile-os-select"
                     style="width: 100%; padding: 16px; font-size: 1.2rem; border-radius: 12px; background: var(--bg-primary); color: var(--text-primary); border: 2px solid rgba(255,255,255,0.2);"
                     onchange="applyMobileFilters()">
                     <option value="">All OS</option>
                 </select>
             </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-top: 1px solid var(--border-color);">
-                <label for="mobile-filter-alerts" style="font-size: 1.1rem; font-weight: 500;">Show Alerts Only</label>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="mobile-filter-alerts" onchange="applyMobileFilters()">
-                    <div class="toggle-slider" style="width: 50px; height: 28px;"></div>
-                </label>
+            <div
+                style="display: flex; align-items: center; gap: 12px; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.1);">
+                <input type="checkbox" id="mobile-filter-alerts" style="width: 28px; height: 28px;"
+                    onchange="applyMobileFilters()">
+                <label for="mobile-filter-alerts" style="font-size: 1.2rem;">Show Alerts Only</label>
             </div>
-            <button class="btn" onclick="clearMobileFilters()" style="width: 100%; margin-top: 20px; padding: 16px; font-size: 1.1rem; color: var(--color-critical); border-color: var(--color-critical);">Clear All Filters</button>
+            <button class="btn" onclick="clearMobileFilters()"
+                style="width: 100%; margin-top: 20px; padding: 16px; font-size: 1.1rem; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);">Clear
+                All Filters</button>
         </div>
     </div>
 
@@ -896,10 +1417,12 @@
             alertsList.innerHTML = vmsWithAlerts.map(vm => {
                 const level = getAlertLevel(vm);
                 const details = getAlertDetails(vm).join(' | ');
-                const alertClass = level === 'alarm' ? 'alarm' : 'warning';
+                const bgColor = level === 'alarm' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)';
+                const borderColor = level === 'alarm' ? '#ef4444' : '#f59e0b';
+
                 return `
-                    <div class="alert-item ${alertClass}" onclick="showDetails('${vm.hostname}')">
-                        <strong>${vm.hostname}</strong>
+                    <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 6px; padding: 8px 12px; cursor: pointer;" onclick="showDetails('${vm.hostname}')">
+                        <strong>${vm.hostname}</strong><br>
                         <span style="font-size: 0.85em;">${details}</span>
                     </div>
                 `;

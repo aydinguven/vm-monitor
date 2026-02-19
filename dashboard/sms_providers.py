@@ -253,17 +253,7 @@ class TelegramProvider(SMSProvider):
                     "parse_mode": "Markdown"
                 }, timeout=30)
                 
-                # Log raw response for debugging
-                if not response.text:
-                    logger.error(f"Telegram: Empty response for chat {chat_id}, status: {response.status_code}")
-                    continue
-                
-                try:
-                    result = response.json()
-                except Exception as json_err:
-                    logger.error(f"Telegram: JSON parse error for chat {chat_id}: {json_err}, raw: {response.text[:200]}")
-                    continue
-                
+                result = response.json()
                 if result.get("ok"):
                     logger.info(f"Telegram message sent to chat {chat_id}")
                     success_count += 1
