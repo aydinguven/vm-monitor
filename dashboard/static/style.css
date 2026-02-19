@@ -1,56 +1,45 @@
 /* ========================================
-   VM Monitor Dashboard — "Thermal" Theme
-   v2.0 — Industrial monitoring aesthetic
+   VM Monitor Dashboard - Styles
    ======================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-
 :root {
-    /* Thermal Palette */
-    --bg-primary: #121210;
-    --bg-secondary: #181816;
-    --bg-card: #1e1e1a;
-    --bg-card-hover: #26261f;
-
-    --text-primary: #e8e4d9;
-    --text-secondary: #9a9686;
-    --text-muted: #5e5b50;
-
-    --accent: #e8912d;
-    --accent-dim: rgba(232, 145, 45, 0.15);
-    --accent-glow: rgba(232, 145, 45, 0.25);
-
-    --color-success: #d4a528;
-    --color-warning: #e06c2e;
-    --color-critical: #d42b2b;
-    --color-info: #5ca0c4;
-
-    --color-cpu: #e8912d;
-    --color-ram: #48a8a0;
-    --color-disk: #c4883a;
-
-    --border-color: rgba(232, 145, 45, 0.1);
-    --border-strong: rgba(232, 145, 45, 0.2);
-
+    /* Colors */
+    --bg-primary: #0f0f14;
+    --bg-secondary: #16161d;
+    --bg-card: rgba(30, 30, 40, 0.8);
+    --bg-card-hover: rgba(40, 40, 55, 0.9);
+    
+    --text-primary: #f0f0f5;
+    --text-secondary: #9090a0;
+    --text-muted: #606070;
+    
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+    --color-critical: #ef4444;
+    --color-info: #3b82f6;
+    
+    --color-cpu: #8b5cf6;
+    --color-ram: #06b6d4;
+    --color-disk: #f59e0b;
+    
+    --border-color: rgba(255, 255, 255, 0.08);
+    --glow: 0 0 20px rgba(139, 92, 246, 0.15);
+    
     /* Spacing */
     --spacing-xs: 4px;
     --spacing-sm: 8px;
     --spacing-md: 16px;
     --spacing-lg: 24px;
     --spacing-xl: 32px;
-
-    /* Border Radius — squared-off, industrial */
-    --radius-sm: 3px;
-    --radius-md: 4px;
-    --radius-lg: 6px;
-
+    
+    /* Border Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    
     /* Transitions */
-    --transition-fast: 120ms ease;
-    --transition-normal: 200ms ease;
-
-    /* Typography */
-    --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
 }
 
 * {
@@ -60,28 +49,11 @@
 }
 
 body {
-    font-family: var(--font-body);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
     line-height: 1.5;
-    position: relative;
-}
-
-/* Scanline overlay — CRT / display monitor feel */
-body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9999;
-    background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.04) 2px,
-        rgba(0, 0, 0, 0.04) 4px
-    );
 }
 
 /* ========================================
@@ -110,17 +82,16 @@ header {
 }
 
 .logo svg {
-    color: var(--accent);
-    filter: drop-shadow(0 0 6px var(--accent-glow));
+    color: var(--color-cpu);
 }
 
 .logo h1 {
-    font-family: var(--font-mono);
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 600;
-    color: var(--accent);
-    letter-spacing: -0.02em;
-    text-shadow: 0 0 20px var(--accent-glow);
+    background: linear-gradient(135deg, var(--color-cpu), var(--color-ram));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .header-info {
@@ -128,24 +99,21 @@ header {
     align-items: center;
     gap: var(--spacing-md);
     color: var(--text-secondary);
-    font-size: 0.8rem;
-    font-family: var(--font-mono);
+    font-size: 0.875rem;
 }
 
 .separator {
     color: var(--text-muted);
-    opacity: 0.4;
 }
 
 .btn-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-top-color: var(--border-strong);
     border-radius: var(--radius-sm);
     color: var(--text-secondary);
     cursor: pointer;
@@ -154,8 +122,7 @@ header {
 
 .btn-icon:hover {
     background: var(--bg-card-hover);
-    color: var(--accent);
-    border-color: var(--accent-dim);
+    color: var(--text-primary);
 }
 
 .btn-icon.spinning svg {
@@ -177,7 +144,7 @@ header {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 80px 20px;
+    padding: var(--spacing-xl) * 2;
     color: var(--text-secondary);
 }
 
@@ -186,12 +153,12 @@ header {
 }
 
 .spinner {
-    width: 36px;
-    height: 36px;
-    border: 2px solid var(--border-color);
-    border-top-color: var(--accent);
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--color-cpu);
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: spin 1s linear infinite;
     margin-bottom: var(--spacing-md);
 }
 
@@ -201,25 +168,20 @@ header {
 }
 
 .empty-state h2 {
-    font-family: var(--font-mono);
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     margin-bottom: var(--spacing-sm);
-    color: var(--text-primary);
 }
 
 .empty-state p {
     margin-bottom: var(--spacing-lg);
-    color: var(--text-secondary);
 }
 
 .empty-state code {
     background: var(--bg-card);
-    border: 1px solid var(--border-color);
     padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--radius-sm);
-    font-size: 0.8rem;
-    font-family: var(--font-mono);
-    color: var(--accent);
+    font-size: 0.875rem;
+    color: var(--color-cpu);
 }
 
 /* ========================================
@@ -235,27 +197,25 @@ header {
 .vm-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-top-color: var(--border-strong);
-    border-left: 3px solid transparent;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     padding: var(--spacing-lg);
+    backdrop-filter: blur(10px);
     transition: var(--transition-normal);
     cursor: default;
-    position: relative;
 }
 
 .vm-card:hover {
     background: var(--bg-card-hover);
-    border-left-color: var(--accent);
+    box-shadow: var(--glow);
+    transform: translateY(-2px);
 }
 
 .vm-card.offline {
-    opacity: 0.5;
+    opacity: 0.6;
 }
 
 .vm-card.offline:hover {
-    opacity: 0.7;
-    border-left-color: var(--text-muted);
+    opacity: 0.8;
 }
 
 /* VM Header */
@@ -267,21 +227,15 @@ header {
 }
 
 .vm-status {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     flex-shrink: 0;
 }
 
 .vm-status.online {
     background: var(--color-success);
-    box-shadow: 0 0 8px rgba(212, 165, 40, 0.5);
-    animation: status-pulse 3s ease-in-out infinite;
-}
-
-@keyframes status-pulse {
-    0%, 100% { box-shadow: 0 0 4px rgba(212, 165, 40, 0.3); }
-    50% { box-shadow: 0 0 10px rgba(212, 165, 40, 0.6); }
+    box-shadow: 0 0 8px var(--color-success);
 }
 
 .vm-status.offline {
@@ -289,19 +243,17 @@ header {
 }
 
 .vm-hostname {
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 600;
     flex-grow: 1;
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--text-primary);
 }
 
 .vm-cloud {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
 }
 
 /* Metrics */
@@ -314,7 +266,7 @@ header {
 .metric {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: var(--spacing-xs);
 }
 
 .metric-header {
@@ -324,59 +276,54 @@ header {
 }
 
 .metric-label {
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    font-family: var(--font-mono);
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
 }
 
 .metric-value {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
-    color: var(--text-primary);
 }
 
 .metric-detail {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
-    font-family: var(--font-mono);
 }
 
-/* Progress Bar — thermal gradient */
+/* Progress Bar */
 .progress-bar {
-    height: 5px;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 1px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
     overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
-    border-radius: 1px;
+    border-radius: 3px;
     transition: width var(--transition-normal);
 }
 
 .progress-fill.normal {
-    background: linear-gradient(90deg, #b8922a, #d4a528);
+    background: linear-gradient(90deg, var(--color-success), #4ade80);
 }
 
 .progress-fill.warning {
-    background: linear-gradient(90deg, #c85a20, #e06c2e);
-    animation: bar-pulse 2.5s ease-in-out infinite;
+    background: linear-gradient(90deg, var(--color-warning), #fbbf24);
 }
 
 .progress-fill.critical {
-    background: linear-gradient(90deg, #a82020, #d42b2b);
-    animation: bar-pulse 1.2s ease-in-out infinite;
+    background: linear-gradient(90deg, var(--color-critical), #f87171);
+    animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes bar-pulse {
+@keyframes pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.65; }
+    50% { opacity: 0.7; }
 }
 
 /* VM Footer */
@@ -392,8 +339,7 @@ header {
 }
 
 .vm-lastseen {
-    font-size: 0.7rem;
-    font-family: var(--font-mono);
+    font-size: 0.75rem;
     color: var(--text-muted);
     flex: 1;
     min-width: 0;
@@ -408,19 +354,16 @@ header {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     color: var(--text-secondary);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 500;
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     cursor: pointer;
     transition: var(--transition-fast);
 }
 
 .btn-details:hover {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #121210;
+    background: var(--color-cpu);
+    border-color: var(--color-cpu);
+    color: white;
 }
 
 /* ========================================
@@ -430,8 +373,8 @@ header {
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(3px);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -442,8 +385,7 @@ header {
 .modal-content {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-top: 2px solid var(--accent);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     width: 100%;
     max-width: 700px;
     max-height: 85vh;
@@ -456,45 +398,37 @@ header {
     position: absolute;
     top: var(--spacing-md);
     right: var(--spacing-md);
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     background: transparent;
     border: none;
-    color: var(--text-muted);
-    font-size: 1.4rem;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
     cursor: pointer;
     transition: var(--transition-fast);
     line-height: 1;
 }
 
 .modal-close:hover {
-    color: var(--accent);
+    color: var(--text-primary);
 }
 
 #modal-body h2 {
-    font-family: var(--font-mono);
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     margin-bottom: var(--spacing-xs);
-    color: var(--accent);
 }
 
 #modal-body h3 {
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     margin: var(--spacing-lg) 0 var(--spacing-md);
     color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 .modal-subtitle {
     color: var(--text-muted);
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     margin-bottom: var(--spacing-lg);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
 }
 
 .modal-metrics {
@@ -505,8 +439,6 @@ header {
 
 .modal-metric {
     background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-top-color: var(--border-strong);
     border-radius: var(--radius-md);
     padding: var(--spacing-md);
     text-align: center;
@@ -514,26 +446,24 @@ header {
 
 .modal-metric-value {
     display: block;
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
-    color: var(--accent);
+    color: var(--color-cpu);
 }
 
 .modal-metric-label {
-    font-size: 0.65rem;
-    font-family: var(--font-mono);
+    font-size: 0.75rem;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
 }
 
 /* Disk Table */
 .disk-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
 }
 
 .disk-table th,
@@ -544,27 +474,20 @@ header {
 }
 
 .disk-table th {
-    font-weight: 600;
-    color: var(--text-muted);
-    font-size: 0.65rem;
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-
-.disk-table td {
-    font-family: var(--font-mono);
+    font-weight: 500;
     color: var(--text-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .disk-table .progress-bar {
-    width: 80px;
+    width: 100px;
 }
 
 /* History Chart */
 .history-chart {
     background: var(--bg-card);
-    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: var(--spacing-md);
     min-height: 150px;
@@ -576,8 +499,7 @@ header {
     gap: var(--spacing-md);
     justify-content: center;
     margin-top: var(--spacing-sm);
-    font-size: 0.7rem;
-    font-family: var(--font-mono);
+    font-size: 0.75rem;
 }
 
 .legend-cpu {
@@ -588,57 +510,6 @@ header {
     color: var(--color-ram);
 }
 
-/* Command Console */
-.cmd-console {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    margin-top: var(--spacing-md);
-    overflow: hidden;
-}
-
-.cmd-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--spacing-sm) var(--spacing-md);
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border-color);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-}
-
-.cmd-console pre {
-    padding: var(--spacing-md);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--accent);
-    overflow-x: auto;
-    white-space: pre-wrap;
-    word-break: break-all;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-/* Form Inputs */
-.form-input {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    padding: 8px 12px;
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    transition: var(--transition-fast);
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent-dim);
-}
-
 /* ========================================
    Responsive
    ======================================== */
@@ -647,21 +518,21 @@ header {
     .container {
         padding: var(--spacing-md);
     }
-
+    
     header {
         flex-direction: column;
         gap: var(--spacing-md);
         text-align: center;
     }
-
+    
     .vm-grid {
         grid-template-columns: 1fr;
     }
-
+    
     .modal-content {
         padding: var(--spacing-lg);
     }
-
+    
     .modal-metrics {
         grid-template-columns: 1fr;
     }
@@ -672,45 +543,45 @@ header {
     .container {
         padding: var(--spacing-sm);
     }
-
+    
     .vm-card {
         padding: var(--spacing-md);
     }
-
+    
     .vm-header {
         gap: var(--spacing-xs);
     }
-
+    
     .vm-hostname {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
     }
-
+    
     .vm-cloud {
         font-size: 1rem;
     }
-
+    
     .metric-label {
-        font-size: 0.65rem;
+        font-size: 0.7rem;
     }
-
+    
     .metric-value {
-        font-size: 0.78rem;
+        font-size: 0.8rem;
     }
-
+    
     .metric-detail {
-        font-size: 0.65rem;
+        font-size: 0.7rem;
     }
-
+    
     .vm-footer {
         flex-direction: column;
         align-items: stretch;
     }
-
+    
     .vm-lastseen {
         text-align: center;
         white-space: normal;
     }
-
+    
     .btn-details {
         width: 100%;
         text-align: center;

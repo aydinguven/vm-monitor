@@ -9,37 +9,28 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ version }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Thermal Theme Variables */
+        /* v1.20 - Theme Variables */
         :root {
-            --bg-primary: #121210;
-            --bg-card: #1e1e1a;
-            --bg-hover: #26261f;
-            --text-primary: #e8e4d9;
-            --text-secondary: #9a9686;
-            --accent: #e8912d;
-            --accent-dim: rgba(232, 145, 45, 0.15);
-            --success: #d4a528;
-            --warning: #e06c2e;
-            --danger: #d42b2b;
-            --border-color: rgba(232, 145, 45, 0.1);
-            --border-strong: rgba(232, 145, 45, 0.2);
-            --font-mono: 'JetBrains Mono', monospace;
+            --bg-primary: #0a0a0f;
+            --bg-card: #1a1a24;
+            --bg-hover: #252532;
+            --text-primary: #f0f0f0;
+            --text-secondary: #888;
+            --accent: #6366f1;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
         }
 
         [data-theme="light"] {
-            --bg-primary: #f2efe6;
-            --bg-card: #faf8f2;
-            --bg-hover: #eae6da;
-            --text-primary: #2a2820;
-            --text-secondary: #6e685a;
-            --accent: #c47a22;
-            --border-color: rgba(196, 122, 34, 0.15);
-            --border-strong: rgba(196, 122, 34, 0.25);
+            --bg-primary: #f5f5f7;
+            --bg-card: #ffffff;
+            --bg-hover: #e8e8ec;
+            --text-primary: #1a1a24;
+            --text-secondary: #666;
         }
 
         /* v1.31 - Mobile UI Mode - BIG TEXT & BUTTONS */
@@ -220,7 +211,7 @@
             left: 0 !important;
             right: 0 !important;
             background: var(--bg-card);
-            border-radius: 4px 4px 0 0;
+            border-radius: 16px 16px 0 0;
             padding: 20px;
             z-index: 200 !important;
             max-height: 70vh;
@@ -262,7 +253,7 @@
             display: flex;
             align-items: center;
             padding: 12px 0;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 1rem;
             gap: 10px;
         }
@@ -289,74 +280,72 @@
 
         .search-box {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
             padding: 8px 15px;
             color: var(--text-primary);
             width: 200px;
-            font-size: 0.85em;
-            font-family: var(--font-mono);
+            font-size: 0.9em;
         }
 
         .search-box:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(232, 145, 45, 0.12);
         }
 
         .btn {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-top-color: var(--border-strong);
-            border-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
             padding: 8px 15px;
             color: var(--text-primary);
             cursor: pointer;
-            font-size: 0.82em;
-            font-family: var(--font-mono);
-            transition: all 0.15s;
+            font-size: 0.85em;
+            transition: all 0.2s;
         }
 
         .btn:hover {
             background: var(--bg-hover);
-            border-color: var(--accent);
-            color: var(--accent);
         }
 
         .btn-primary {
             background: var(--accent);
             border-color: var(--accent);
-            color: #121210;
-        }
-
-        .btn-primary:hover {
-            background: #d07e24;
         }
 
         /* v1.20 - Alert Styling */
         .vm-card.alert {
-            border: 1px solid var(--danger);
-            border-left: 3px solid var(--danger);
+            border: 2px solid var(--danger);
+            animation: pulse-alert 2s infinite;
+        }
+
+        @keyframes pulse-alert {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.2);
+            }
         }
 
         .alert-badge {
             position: absolute;
-            top: 8px;
-            right: 8px;
+            top: 10px;
+            right: 10px;
             background: var(--danger);
-            color: #fff;
-            padding: 2px 8px;
-            border-radius: 2px;
-            font-size: 0.65em;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7em;
             font-weight: 600;
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
         }
 
         .alert-badge.warning {
             background: var(--warning);
-            color: #121210;
+            color: #000;
         }
 
         .vm-card.offline {
@@ -366,14 +355,12 @@
 
         /* v1.20 - New Sections */
         .section-title {
-            font-size: 0.75em;
-            font-family: var(--font-mono);
+            font-size: 0.9em;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
             color: var(--text-secondary);
             margin: 20px 0 10px 0;
             padding-bottom: 5px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .stat-grid {
@@ -386,24 +373,8 @@
         .stat-box {
             background: rgba(0, 0, 0, 0.3);
             padding: 12px;
-            border-radius: 3px;
+            border-radius: 8px;
             text-align: center;
-            border: 1px solid var(--border-color);
-        }
-
-        .stat-box .value {
-            font-size: 1.4em;
-            font-weight: 600;
-            font-family: var(--font-mono);
-            color: var(--text-primary);
-        }
-
-        .stat-box .label {
-            font-size: 0.7em;
-            font-family: var(--font-mono);
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
         }
 
         .stat-box .value {
@@ -456,54 +427,53 @@
         .badge {
             display: inline-block;
             padding: 2px 8px;
-            border-radius: 2px;
-            font-size: 0.75em;
+            border-radius: 12px;
+            font-size: 0.8em;
             font-weight: 500;
-            font-family: var(--font-mono);
         }
 
         .badge.online {
-            background: rgba(212, 165, 40, 0.2);
-            color: #d4a528;
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
         }
 
         .badge.offline {
-            background: rgba(212, 43, 43, 0.15);
-            color: #e06060;
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
         }
 
         .badge.cloud {
-            background: rgba(92, 160, 196, 0.15);
-            color: #5ca0c4;
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
         }
 
         .badge.os {
-            background: rgba(196, 136, 58, 0.15);
-            color: #c4883a;
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
         }
 
         .badge.status-ok {
-            color: #d4a528;
+            color: #4ade80;
         }
 
         .badge.status-err {
-            color: #d42b2b;
+            color: #f87171;
         }
 
         .table-scroll {
             margin-bottom: 20px;
             background: rgba(0, 0, 0, 0.2);
-            border-radius: 3px;
-            border: 1px solid var(--border-color);
+            border-radius: 8px;
             overflow-x: hidden;
+            /* No horizontal scroll */
         }
 
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85em;
-            font-family: var(--font-mono);
+            font-size: 0.9em;
             table-layout: fixed;
+            /* Fixed layout for consistent column widths */
         }
 
         .data-table td,
@@ -515,61 +485,51 @@
         .data-table th {
             text-align: left;
             padding: 8px;
-            background: #1e1e1a;
+            background: #1a1a24;
             position: sticky;
             top: 0;
             z-index: 1;
-            font-size: 0.75em;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
         }
 
         .data-table td {
             padding: 6px 8px;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .mono {
-            font-family: var(--font-mono);
-            color: var(--text-secondary);
+            font-family: monospace;
+            color: #aaa;
         }
 
         .debug-section {
             margin-top: 30px;
             padding-top: 15px;
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .btn-text {
             background: none;
             border: none;
-            color: var(--text-secondary);
+            color: #888;
             cursor: pointer;
-            font-size: 0.75em;
-            font-family: var(--font-mono);
-            text-decoration: none;
+            font-size: 0.8em;
+            text-decoration: underline;
             padding: 0;
-            border-bottom: 1px dashed var(--text-muted);
         }
 
         .btn-text:hover {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
+            color: #eee;
         }
 
         #raw-data {
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.4);
             padding: 15px;
-            border-radius: 3px;
-            font-size: 0.72em;
-            font-family: var(--font-mono);
-            color: var(--accent);
+            border-radius: 8px;
+            font-size: 0.75em;
+            color: #4ade80;
             overflow-x: auto;
             margin-top: 10px;
             max-height: 300px;
-            border: 1px solid var(--border-color);
         }
 
         .hidden {
@@ -617,7 +577,7 @@
                         Provider ▼
                     </button>
                     <div id="provider-dropdown" class="dropdown-menu"
-                        style="display: none; position: absolute; top: 100%; left: 0; background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: 3px; padding: 8px; min-width: 150px; z-index: 100; max-height: 200px; overflow-y: auto;">
+                        style="display: none; position: absolute; top: 100%; left: 0; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; min-width: 150px; z-index: 100; max-height: 200px; overflow-y: auto;">
                     </div>
                 </div>
                 <div class="filter-dropdown" style="position: relative;">
@@ -625,7 +585,7 @@
                         OS ▼
                     </button>
                     <div id="os-dropdown" class="dropdown-menu"
-                        style="display: none; position: absolute; top: 100%; left: 0; background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: 3px; padding: 8px; min-width: 150px; z-index: 100; max-height: 200px; overflow-y: auto;">
+                        style="display: none; position: absolute; top: 100%; left: 0; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; min-width: 150px; z-index: 100; max-height: 200px; overflow-y: auto;">
                     </div>
                 </div>
                 <label style="display: flex; align-items: center; gap: 5px; font-size: 0.85em; cursor: pointer;">
@@ -661,13 +621,12 @@
 
         <!-- v1.28.3 - Alerts Summary Section (v1.30 - Collapsible) -->
         <div id="alerts-section" class="alerts-section hidden"
-            style="background: rgba(212, 43, 43, 0.08); border: 1px solid rgba(212, 43, 43, 0.25); border-radius: 4px; padding: 15px; margin-bottom: 20px;">
+            style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;"
                 onclick="toggleAlertsSection()">
-                <h3 style="margin: 0; color: #d42b2b; font-family: var(--font-mono);">⚠ Active Alerts</h3>
+                <h3 style="margin: 0; color: #ef4444;">⚠️ Active Alerts</h3>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <span id="alerts-count" class="badge"
-                        style="background: #d42b2b; color: #fff; font-family: var(--font-mono);">0</span>
+                    <span id="alerts-count" class="badge" style="background: #ef4444; color: white;">0</span>
                     <button id="alerts-toggle" class="btn" style="padding: 4px 10px; font-size: 0.75em;">▼
                         Minimize</button>
                 </div>
@@ -690,7 +649,7 @@
     <div id="mobile-filter-backdrop" class="mobile-bottom-sheet-backdrop" onclick="closeMobileFilters()"></div>
     <div id="mobile-filter-sheet" class="mobile-bottom-sheet">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; font-size: 1.4rem; font-family: var(--font-mono);">Filters</h3>
+            <h3 style="margin: 0; font-size: 1.4rem;">Filters</h3>
             <button class="btn" onclick="closeMobileFilters()"
                 style="padding: 12px 24px; font-size: 1.1rem;">Done</button>
         </div>
@@ -699,7 +658,7 @@
                 <label
                     style="display: block; font-size: 1.1rem; margin-bottom: 10px; color: var(--text-secondary);">Provider</label>
                 <select id="mobile-provider-select"
-                    style="width: 100%; padding: 16px; font-size: 1.2rem; border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-strong); font-family: var(--font-mono);"
+                    style="width: 100%; padding: 16px; font-size: 1.2rem; border-radius: 12px; background: var(--bg-primary); color: var(--text-primary); border: 2px solid rgba(255,255,255,0.2);"
                     onchange="applyMobileFilters()">
                     <option value="">All Providers</option>
                 </select>
@@ -709,19 +668,19 @@
                     style="display: block; font-size: 1.1rem; margin-bottom: 10px; color: var(--text-secondary);">Operating
                     System</label>
                 <select id="mobile-os-select"
-                    style="width: 100%; padding: 16px; font-size: 1.2rem; border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-strong); font-family: var(--font-mono);"
+                    style="width: 100%; padding: 16px; font-size: 1.2rem; border-radius: 12px; background: var(--bg-primary); color: var(--text-primary); border: 2px solid rgba(255,255,255,0.2);"
                     onchange="applyMobileFilters()">
                     <option value="">All OS</option>
                 </select>
             </div>
             <div
-                style="display: flex; align-items: center; gap: 12px; padding: 16px 0; border-top: 1px solid var(--border-color);">
+                style="display: flex; align-items: center; gap: 12px; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.1);">
                 <input type="checkbox" id="mobile-filter-alerts" style="width: 28px; height: 28px;"
                     onchange="applyMobileFilters()">
                 <label for="mobile-filter-alerts" style="font-size: 1.2rem;">Show Alerts Only</label>
             </div>
             <button class="btn" onclick="clearMobileFilters()"
-                style="width: 100%; margin-top: 20px; padding: 16px; font-size: 1.1rem; background: rgba(212, 43, 43, 0.15); border-color: rgba(212, 43, 43, 0.3);">Clear
+                style="width: 100%; margin-top: 20px; padding: 16px; font-size: 1.1rem; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);">Clear
                 All Filters</button>
         </div>
     </div>
@@ -953,9 +912,9 @@
                 return '';  // No latency data - don't show anything
             }
             // Color based on latency: green <100ms, yellow 100-300ms, red >300ms
-            let color = '#d4a528';  // amber (good)
-            if (latency_ms >= 300) color = '#d42b2b';  // red
-            else if (latency_ms >= 100) color = '#e06c2e';  // orange
+            let color = '#22c55e';  // green
+            if (latency_ms >= 300) color = '#ef4444';  // red
+            else if (latency_ms >= 100) color = '#f59e0b';  // yellow
 
             return ` • <span style="color:${color}">${latency_ms.toFixed(0)}ms</span>`;
         }
@@ -1028,8 +987,8 @@
                         {
                             label: 'CPU %',
                             data: history.map(h => h.cpu_avg),
-                            borderColor: '#e8912d',
-                            backgroundColor: 'rgba(232, 145, 45, 0.1)',
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
                             tension: 0.3,
                             fill: true,
                             pointRadius: isLongRange ? 0 : 2,
@@ -1039,8 +998,8 @@
                         {
                             label: 'RAM %',
                             data: history.map(h => h.ram_percent),
-                            borderColor: '#48a8a0',
-                            backgroundColor: 'rgba(72, 168, 160, 0.1)',
+                            borderColor: '#22c55e',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
                             tension: 0.3,
                             fill: true,
                             pointRadius: isLongRange ? 0 : 2,
@@ -1057,14 +1016,14 @@
                         mode: 'index'
                     },
                     plugins: {
-                        legend: { position: 'bottom', labels: { color: '#9a9686', font: { family: "'JetBrains Mono', monospace", size: 11 } } }
+                        legend: { position: 'bottom', labels: { color: '#888' } }
                     },
                     scales: {
-                        y: { min: 0, max: 100, grid: { color: 'rgba(232, 145, 45, 0.06)' }, ticks: { color: '#9a9686', font: { family: "'JetBrains Mono', monospace" } } },
+                        y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
                         x: {
                             display: !isLongRange, // Hide x-axis for long ranges
                             grid: { display: false },
-                            ticks: { color: '#9a9686', maxTicksLimit: 8, font: { family: "'JetBrains Mono', monospace" } }
+                            ticks: { color: '#888', maxTicksLimit: 8 }
                         }
                     }
                 }
@@ -1458,11 +1417,11 @@
             alertsList.innerHTML = vmsWithAlerts.map(vm => {
                 const level = getAlertLevel(vm);
                 const details = getAlertDetails(vm).join(' | ');
-                const bgColor = level === 'alarm' ? 'rgba(212, 43, 43, 0.15)' : 'rgba(224, 108, 46, 0.15)';
-                const borderColor = level === 'alarm' ? '#d42b2b' : '#e06c2e';
+                const bgColor = level === 'alarm' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)';
+                const borderColor = level === 'alarm' ? '#ef4444' : '#f59e0b';
 
                 return `
-                    <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 3px; padding: 8px 12px; cursor: pointer; font-family: var(--font-mono);" onclick="showDetails('${vm.hostname}')">
+                    <div style="background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 6px; padding: 8px 12px; cursor: pointer;" onclick="showDetails('${vm.hostname}')">
                         <strong>${vm.hostname}</strong><br>
                         <span style="font-size: 0.85em;">${details}</span>
                     </div>
@@ -1507,8 +1466,8 @@
                         <span class="badge ${vm.online ? 'online' : 'offline'}">${vm.online ? 'Online' : 'Offline'}</span>
                         <span class="badge cloud">${getCloudIcon(vm.cloud_provider)} ${vm.cloud_provider}</span>
                         <span class="badge os">${vm.os_name || 'Unknown OS'}</span>
-                        ${vm.agent_version ? `<span class="badge" style="background: rgba(212, 165, 40, 0.15); color: #d4a528;">Agent v${vm.agent_version}</span>` : ''}
-                        ${vm.pending_updates > 0 ? `<span class="badge" style="background: rgba(224, 108, 46, 0.15); color: #e06c2e;">${vm.pending_updates} Updates Pending</span>` : ''}
+                        ${vm.agent_version ? `<span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #4ade80;">Agent v${vm.agent_version}</span>` : ''}
+                        ${vm.pending_updates > 0 ? `<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">${vm.pending_updates} Updates Pending</span>` : ''}
                     </div>
                     
                     <div class="modal-grid">
@@ -1534,10 +1493,10 @@
                     <div class="info-group" style="margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px;">
                         <label>Security Check</label>
                         <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">
-                            <div>SSH Failed: <span style="color:${(vm.ssh_failed_attempts || 0) > 0 ? '#d42b2b' : '#d4a528'}; font-weight:bold;">${vm.ssh_failed_attempts || 0}</span></div>
+                            <div>SSH Failed: <span style="color:${(vm.ssh_failed_attempts || 0) > 0 ? '#ef4444' : '#22c55e'}; font-weight:bold;">${vm.ssh_failed_attempts || 0}</span></div>
                             <div style="flex:1;">Open Ports: ${(vm.open_ports || []).map(p =>
-                    `<span class="badge" style="background:rgba(255,255,255,0.06); margin-right:4px; font-size:0.75em;">${p.port} (${p.process})</span>`
-                ).join('') || '<span style="color:var(--text-muted)">None exposed</span>'}</div>
+                    `<span class="badge" style="background:rgba(255,255,255,0.1); margin-right:4px; font-size:0.75em;">${p.port} (${p.process})</span>`
+                ).join('') || '<span style="color:#888">None exposed</span>'}</div>
                         </div>
                     </div>
                     
@@ -1572,7 +1531,7 @@
                     <!-- Historical Chart -->
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                         <h3>History</h3>
-                        <select onchange="updateChartTimeRange('${vm.hostname}', this.value)" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-strong); padding: 4px 8px; border-radius: 3px; font-family: var(--font-mono); font-size: 0.8em;">
+                        <select onchange="updateChartTimeRange('${vm.hostname}', this.value)" style="background:#222; color:#fff; border:1px solid #444; padding:4px; border-radius:4px;">
                             <option value="5m">Last 5 Minutes</option>
                             <option value="15m">Last 15 Minutes</option>
                             <option value="1h" selected>Last 1 Hour</option>
@@ -2081,14 +2040,11 @@
         }, REFRESH_INTERVAL);
     </script>
     <div
-        style="text-align: center; margin-top: 40px; padding: 20px; color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); border-top: 1px solid var(--border-color);">
+        style="text-align: center; margin-top: 40px; padding: 20px; color: #6c757d; font-size: 0.9rem; border-top: 1px solid #343a40;">
         VM Monitoring System &bull; Aydin Aslangoren &copy; 2026<br>
-        Dashboard v1.54 | <a href="/changelog"
-            style="color: var(--text-muted); text-decoration: none; border-bottom: 1px dashed var(--text-muted);">Changelog</a>
-        |
+        Dashboard v1.54 | <a href="/changelog" style="color: #6c757d; text-decoration: underline;">Changelog</a> |
         <a href="https://github.com/aydinguven/vm-monitor" target="_blank"
-            style="color: var(--text-muted); text-decoration: none; border-bottom: 1px dashed var(--text-muted);">Source
-            Code</a>
+            style="color: #6c757d; text-decoration: underline;">Source Code</a>
     </div>
 </body>
 
