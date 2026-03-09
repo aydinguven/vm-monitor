@@ -65,7 +65,8 @@ API_KEY = config.get("api_key", os.getenv("VM_AGENT_KEY", "changeme"))
 PUSH_INTERVAL = int(config.get("interval", os.getenv("VM_AGENT_INTERVAL", "15")))
 HOSTNAME = config.get("hostname", os.getenv("VM_AGENT_HOSTNAME", socket.gethostname()))
 AUTO_UPDATE = config.get("auto_update", os.getenv("VM_AGENT_AUTO_UPDATE", "true").lower() == "true")
-ENABLE_GPU = str(config.get("enable_gpu", os.getenv("VM_AGENT_GPU", "false"))).lower() in ("true", "1", "yes")
+_features = config.get("features", {})
+ENABLE_GPU = str(_features.get("gpu", config.get("enable_gpu", os.getenv("VM_AGENT_GPU", "false")))).lower() in ("true", "1", "yes")
 
 # Linux command whitelist
 ALLOWED_COMMANDS_LINUX = {

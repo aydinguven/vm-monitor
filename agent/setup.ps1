@@ -238,11 +238,11 @@ function Install-Agent {
         "interval"    = [int]$Interval
         "hostname"    = [System.Net.Dns]::GetHostName()
         "auto_update" = $FeatureAutoUpdate
-        "enable_gpu"  = $FeatureGpu
         "features"    = @{
             "containers" = $FeatureContainers
             "pods"       = $FeaturePods
             "commands"   = $FeatureCommands
+            "gpu"        = $FeatureGpu
         }
     }
     

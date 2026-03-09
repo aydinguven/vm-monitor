@@ -279,11 +279,11 @@ install_agent() {
   "interval": $INTERVAL,
   "hostname": "$(hostname)",
   "auto_update": $FEATURE_AUTO_UPDATE,
-  "enable_gpu": $FEATURE_GPU,
   "features": {
     "containers": $FEATURE_CONTAINERS,
     "pods": $FEATURE_PODS,
-    "commands": $FEATURE_COMMANDS
+    "commands": $FEATURE_COMMANDS,
+    "gpu": $FEATURE_GPU
   }
 }
 EOF
