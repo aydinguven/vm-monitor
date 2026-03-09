@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.60 (2026-03-09)
+- **Refactor**: Standardized GPU feature flag. Agent now reads `features.gpu` instead of top-level `enable_gpu` (backwards compatible).
+- **Config**: Setup scripts for Windows and Linux now generate `gpu` inside the `features` block.
+- **Fix**: `update_dashboard.sh` now uses `migrate_db.py` instead of `db.create_all()` to ensure new columns (like `gpu_metrics`) are properly added during updates.
+- **Fix**: Standalone `setup.ps1` runs now correctly download `agent.py` from the dashboard server if local files are missing.
+- **Fix**: `cleanup_dashboard.sh` console locking issue resolved.
+
+## v1.55 (2026-03-09)
+- **Feature**: Optional GPU Monitoring!
+- **Agent**: Added `get_gpu_metrics()` to collect utilization, VRAM, temp, power, and fan speed. Prioritizes `pynvml`, with fallbacks to `nvidia-smi` and WMI.
+- **UI**: Added GPU utilization and memory bars to VM cards. Added detailed GPU metrics table to the VM detail modal.
+- **Config**: Disabled by default. Can be enabled via `setup.sh --gpu` / `setup.ps1 -Gpu` or by setting `"gpu": true` in `features`.
+- **Dashboard**: Added `gpu` feature flag support and `gpu_metrics` storage in the database.
+
 ## v1.54 (2026-02-03)
 - **Fix**: Refined Linux balloon detection to check `actual` balloon size.
 - **Fix**: Prevents false positives on GCP and other platforms where the driver is active but not inflating.

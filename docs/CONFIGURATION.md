@@ -47,7 +47,8 @@ Config files are stored in `instance/` directory:
   "alerts": true,
   "containers": true,
   "pods": true,
-  "auto_update": true
+  "auto_update": true,
+  "gpu": true
 }
 ```
 
@@ -55,24 +56,36 @@ Config files are stored in `instance/` directory:
 
 ### Environment Variables
 
-Set in `/etc/vm-agent/vm-agent.conf` (Linux) or `C:\vm-agent\vm-agent.conf` (Windows):
+Set in `agent_config.json` at `/opt/vm-agent/` (Linux) or `C:\vm-agent\` (Windows):
 
-```bash
-VM_AGENT_SERVER=https://your-dashboard:5000
-VM_AGENT_KEY=your_api_key
-VM_AGENT_INTERVAL=15
-VM_AGENT_HOSTNAME=custom-hostname
-VM_AGENT_UPDATE_URL=https://your-update-server.com
+```json
+{
+  "server_url": "https://your-dashboard.com",
+  "api_key": "your_api_key",
+  "interval": 30,
+  "hostname": "custom-hostname",
+  "auto_update": true,
+  "features": {
+    "containers": true,
+    "pods": true,
+    "commands": true,
+    "gpu": true
+  }
+}
 ```
+
+Legacy agents will also read `VM_AGENT_SERVER`, `VM_AGENT_KEY`, `VM_AGENT_INTERVAL`, and `VM_AGENT_GPU` environment variables.
 
 ### Agent Installation Options
 
+**Linux:**
 ```bash
-./install_agent.sh \
-  --server https://dashboard:5000 \
-  --key YOUR_API_KEY \
-  --interval 30 \
-  --update-url https://your-update-server.com
+./setup.sh --batch --server https://dashboard.com --key YOUR_API_KEY --interval 30 --gpu
+```
+
+**Windows (PowerShell):**
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup.ps1 -Batch -Server "https://dashboard.com" -Key "YOUR_API_KEY" -Gpu
 ```
 
 ## Production Deployment
