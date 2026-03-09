@@ -97,6 +97,9 @@ class VM(db.Model):
     # v1.51 - Balloon Detection
     balloon_enabled = db.Column(db.Boolean, default=False)  # Memory ballooning detected
 
+    # v1.55 - GPU Monitoring
+    gpu_metrics = db.Column(db.JSON)  # [{"name": "RTX 4090", "utilization_percent": 45, ...}]
+
     # Relationship to metrics history
     metrics = db.relationship("Metric", backref="vm", lazy="dynamic", cascade="all, delete-orphan")
     
@@ -144,7 +147,9 @@ class VM(db.Model):
             # v1.48 - Latency
             "latency_ms": self.latency_ms,
             "http_rtt_ms": self.http_rtt_ms,
-            "latency_updated_at": self.latency_updated_at.isoformat() if self.latency_updated_at else None
+            "latency_updated_at": self.latency_updated_at.isoformat() if self.latency_updated_at else None,
+            # v1.55 - GPU
+            "gpu_metrics": self.gpu_metrics or [],
         }
     
     def to_list_dict(self):
@@ -172,6 +177,8 @@ class VM(db.Model):
             "pending_updates": self.pending_updates or 0,
             # v1.48 - Latency
             "latency_ms": self.latency_ms,
+            # v1.55 - GPU
+            "gpu_metrics": self.gpu_metrics or [],
         }
 
 

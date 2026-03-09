@@ -493,6 +493,7 @@ def get_features_api():
         "pods": is_feature_enabled("pods", True),
         "auto_update": is_feature_enabled("auto_update", True),
         "latency": is_feature_enabled("latency", False),  # v1.48
+        "gpu": is_feature_enabled("gpu", False),  # v1.55
     }
     
     return jsonify({
@@ -613,6 +614,10 @@ def receive_metrics():
         vm.latency_updated_at = datetime.utcnow()
     if "http_rtt_ms" in data:
         vm.http_rtt_ms = data["http_rtt_ms"]
+    
+    # v1.55 - GPU metrics (optional)
+    if "gpu_metrics" in data:
+        vm.gpu_metrics = data["gpu_metrics"]
     
     # Store historical metric
     metric = Metric(

@@ -1031,6 +1031,101 @@
         }
 
 
+        // v1.55 - Render GPU metrics for VM card (compact)
+        function renderGPUCard(gpuMetrics) {
+            if (!gpuMetrics || gpuMetrics.length === 0) return '';
+
+            return gpuMetrics.map(gpu => {
+                const util = gpu.utilization_percent;
+                const memPct = gpu.memory_percent;
+                const hasUtil = util !== null && util !== undefined;
+                const hasMem = memPct !== null && memPct !== undefined;
+                const label = gpuMetrics.length > 1 ? `GPU ${gpu.index}` : 'GPU';
+
+                return `
+                    <div class="metric">
+                        <div class="metric-header">
+                            <span class="metric-label">${label}</span>
+                            <span class="metric-value">${hasUtil ? util.toFixed(0) + '%' : 'N/A'}</span>
+                        </div>
+                        ${hasUtil ? `<div class="progress-bar"><div class="progress-fill ${getStatusClass(util)}" style="width: ${Math.min(util, 100)}%"></div></div>` : ''}
+                        <span class="metric-detail">${gpu.name || 'Unknown'}${hasMem ? ' \u2022 Mem: ' + memPct.toFixed(0) + '%' : ''}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // v1.55 - Render GPU section for detail modal (full info)
+        function renderGPUSection(gpuMetrics) {
+            if (!gpuMetrics || gpuMetrics.length === 0) return '';
+
+            const fmtVal = (v, suffix) => (v !== null && v !== undefined) ? `${v}${suffix}` : '-';
+
+            const rows = gpuMetrics.map(gpu => {
+                const util = gpu.utilization_percent;
+                const memUsed = gpu.memory_used_mb;
+                const memTotal = gpu.memory_total_mb;
+                const memPct = gpu.memory_percent;
+                const temp = gpu.temperature_c;
+                const power = gpu.power_draw_w;
+                const fan = gpu.fan_speed_percent;
+
+                const fmtMem = () => {
+                    if (memUsed !== null && memTotal !== null) return `${memUsed} / ${memTotal} MB`;
+                    if (memTotal !== null) return `${memTotal} MB total`;
+                    return '-';
+                };
+
+                // Temperature color coding
+                let tempColor = '#22c55e';
+                if (temp !== null && temp !== undefined) {
+                    if (temp >= 85) tempColor = '#ef4444';
+                    else if (temp >= 70) tempColor = '#f59e0b';
+                }
+
+                return `
+                    <tr>
+                        <td>${gpu.index}</td>
+                        <td>${gpu.name || 'Unknown'}</td>
+                        <td>
+                            ${util !== null && util !== undefined ? `
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div class="progress-bar" style="flex:1; height:8px;">
+                                        <div class="progress-fill ${getStatusClass(util)}" style="width: ${Math.min(util, 100)}%"></div>
+                                    </div>
+                                    <span>${util}%</span>
+                                </div>
+                            ` : '-'}
+                        </td>
+                        <td>
+                            ${memPct !== null && memPct !== undefined ? `
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div class="progress-bar" style="flex:1; height:8px;">
+                                        <div class="progress-fill ${getStatusClass(memPct)}" style="width: ${Math.min(memPct, 100)}%"></div>
+                                    </div>
+                                    <span>${memPct}%</span>
+                                </div>
+                                <div style="font-size:0.8em; color:#888;">${fmtMem()}</div>
+                            ` : fmtMem()}
+                        </td>
+                        <td style="color:${tempColor}; font-weight:500;">${fmtVal(temp, '\u00b0C')}</td>
+                        <td>${fmtVal(power, 'W')}</td>
+                        <td>${fmtVal(fan, '%')}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <h3>\ud83c\udfae GPU (${gpuMetrics.length})</h3>
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead><tr><th>#</th><th>Name</th><th>Utilization</th><th>Memory</th><th>Temp</th><th>Power</th><th>Fan</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
         function renderContainers(containers, hostname) {
             if (!containers || containers.length === 0) {
                 return `
@@ -1354,6 +1449,7 @@
                         </div>
                         
                         ${renderDiskMetrics(vm.disk_usage)}
+                        ${renderGPUCard(vm.gpu_metrics)}
                     </div>
                     
                     <div class="vm-footer">
@@ -1574,6 +1670,7 @@
 
                     ${renderContainers(vm.containers, vm.hostname)}
                     ${renderPods(vm.pods)}
+                    ${renderGPUSection(vm.gpu_metrics)}
                     
                     <h3>Disk Usage</h3>
                     <table class="disk-table">

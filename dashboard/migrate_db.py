@@ -52,6 +52,10 @@ EXPECTED_SCHEMA = {
         ("latency_ms", "FLOAT", None),
         ("http_rtt_ms", "FLOAT", None),
         ("latency_updated_at", "DATETIME", None),
+        # v1.51 - Balloon Detection
+        ("balloon_enabled", "BOOLEAN", "0"),
+        # v1.55 - GPU Monitoring
+        ("gpu_metrics", "JSON", None),
     ],
     "metrics": [
         ("id", "INTEGER PRIMARY KEY", None),

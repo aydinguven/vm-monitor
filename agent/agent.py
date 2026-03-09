@@ -65,6 +65,7 @@ API_KEY = config.get("api_key", os.getenv("VM_AGENT_KEY", "changeme"))
 PUSH_INTERVAL = int(config.get("interval", os.getenv("VM_AGENT_INTERVAL", "15")))
 HOSTNAME = config.get("hostname", os.getenv("VM_AGENT_HOSTNAME", socket.gethostname()))
 AUTO_UPDATE = config.get("auto_update", os.getenv("VM_AGENT_AUTO_UPDATE", "true").lower() == "true")
+ENABLE_GPU = str(config.get("enable_gpu", os.getenv("VM_AGENT_GPU", "false"))).lower() in ("true", "1", "yes")
 
 # Linux command whitelist
 ALLOWED_COMMANDS_LINUX = {
@@ -774,6 +775,158 @@ def get_pending_updates() -> int:
     return 0
 
 
+def get_gpu_metrics() -> list:
+    """Get GPU metrics (NVIDIA GPUs via pynvml, nvidia-smi CLI, or Windows WMI).
+    
+    Returns a list of GPU dicts or empty list if no GPUs / libraries unavailable.
+    """
+    gpus = []
+    
+    # Method 1: pynvml (fastest, no subprocess)
+    try:
+        import pynvml
+        pynvml.nvmlInit()
+        device_count = pynvml.nvmlDeviceGetCount()
+        
+        for i in range(device_count):
+            handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+            name = pynvml.nvmlDeviceGetName(handle)
+            if isinstance(name, bytes):
+                name = name.decode("utf-8")
+            
+            mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+            
+            gpu = {
+                "index": i,
+                "name": name,
+                "memory_total_mb": round(mem_info.total / (1024 ** 2)),
+                "memory_used_mb": round(mem_info.used / (1024 ** 2)),
+                "memory_percent": round((mem_info.used / mem_info.total) * 100, 1) if mem_info.total > 0 else 0,
+            }
+            
+            # Utilization (may fail on some cards)
+            try:
+                util = pynvml.nvmlDeviceGetUtilizationRates(handle)
+                gpu["utilization_percent"] = util.gpu
+            except Exception:
+                gpu["utilization_percent"] = None
+            
+            # Temperature
+            try:
+                gpu["temperature_c"] = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
+            except Exception:
+                gpu["temperature_c"] = None
+            
+            # Power draw
+            try:
+                power_mw = pynvml.nvmlDeviceGetPowerUsage(handle)
+                gpu["power_draw_w"] = round(power_mw / 1000.0, 1)
+            except Exception:
+                gpu["power_draw_w"] = None
+            
+            # Fan speed
+            try:
+                gpu["fan_speed_percent"] = pynvml.nvmlDeviceGetFanSpeed(handle)
+            except Exception:
+                gpu["fan_speed_percent"] = None
+            
+            gpus.append(gpu)
+        
+        pynvml.nvmlShutdown()
+        if gpus:
+            logger.debug(f"GPU metrics via pynvml: {len(gpus)} GPU(s)")
+            return gpus
+    except ImportError:
+        logger.debug("pynvml not installed, trying nvidia-smi fallback")
+    except Exception as e:
+        logger.debug(f"pynvml failed: {e}")
+    
+    # Method 2: nvidia-smi CLI (Linux/Windows)
+    nvidia_smi = shutil.which("nvidia-smi")
+    if nvidia_smi:
+        try:
+            result = subprocess.run(
+                [nvidia_smi, "--query-gpu=index,name,utilization.gpu,memory.total,memory.used,temperature.gpu,power.draw,fan.speed",
+                 "--format=csv,noheader,nounits"],
+                capture_output=True, text=True, timeout=5
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                for line in result.stdout.strip().split("\n"):
+                    parts = [p.strip() for p in line.split(",")]
+                    if len(parts) >= 5:
+                        def safe_float(val):
+                            try:
+                                return float(val)
+                            except (ValueError, TypeError):
+                                return None
+                        
+                        def safe_int(val):
+                            try:
+                                return int(float(val))
+                            except (ValueError, TypeError):
+                                return None
+                        
+                        mem_total = safe_float(parts[3])
+                        mem_used = safe_float(parts[4])
+                        
+                        gpu = {
+                            "index": safe_int(parts[0]) or 0,
+                            "name": parts[1],
+                            "utilization_percent": safe_float(parts[2]),
+                            "memory_total_mb": safe_int(parts[3]) if parts[3] else None,
+                            "memory_used_mb": safe_int(parts[4]) if parts[4] else None,
+                            "memory_percent": round((mem_used / mem_total) * 100, 1) if mem_total and mem_used else None,
+                            "temperature_c": safe_int(parts[5]) if len(parts) > 5 else None,
+                            "power_draw_w": safe_float(parts[6]) if len(parts) > 6 else None,
+                            "fan_speed_percent": safe_int(parts[7]) if len(parts) > 7 else None,
+                        }
+                        gpus.append(gpu)
+                
+                if gpus:
+                    logger.debug(f"GPU metrics via nvidia-smi: {len(gpus)} GPU(s)")
+                    return gpus
+        except (subprocess.TimeoutExpired, OSError) as e:
+            logger.debug(f"nvidia-smi failed: {e}")
+    
+    # Method 3: Windows WMI fallback (basic info only)
+    if IS_WINDOWS:
+        try:
+            result = subprocess.run(
+                ["powershell", "-NoProfile", "-Command",
+                 "Get-CimInstance Win32_VideoController | Select-Object Name,AdapterRAM,CurrentRefreshRate | ConvertTo-Json"],
+                capture_output=True, text=True, timeout=10
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                wmi_data = json.loads(result.stdout)
+                if isinstance(wmi_data, dict):
+                    wmi_data = [wmi_data]
+                
+                for i, card in enumerate(wmi_data):
+                    name = card.get("Name", "Unknown GPU")
+                    adapter_ram = card.get("AdapterRAM", 0)
+                    # WMI doesn't provide utilization/temp - only basic info
+                    gpu = {
+                        "index": i,
+                        "name": name,
+                        "memory_total_mb": round(adapter_ram / (1024 ** 2)) if adapter_ram else None,
+                        "utilization_percent": None,
+                        "memory_used_mb": None,
+                        "memory_percent": None,
+                        "temperature_c": None,
+                        "power_draw_w": None,
+                        "fan_speed_percent": None,
+                    }
+                    gpus.append(gpu)
+                
+                if gpus:
+                    logger.debug(f"GPU info via WMI: {len(gpus)} GPU(s)")
+                    return gpus
+        except Exception as e:
+            logger.debug(f"WMI GPU query failed: {e}")
+    
+    return gpus
+
+
 # =============================================================================
 # Container & Kubernetes Discovery
 # =============================================================================
@@ -1137,8 +1290,16 @@ def collect_metrics() -> dict:
         "top_processes": get_top_processes(),
         "open_ports": get_open_ports(),
         "ssh_failed_attempts": get_ssh_attempts(),
-        "pending_updates": get_pending_updates()
+        "pending_updates": get_pending_updates(),
     }
+    
+    # v1.55 - Optional GPU monitoring
+    if ENABLE_GPU:
+        gpu_data = get_gpu_metrics()
+        if gpu_data:
+            data["gpu_metrics"] = gpu_data
+    
+    return data
 
 
 # v1.48 - Track latencies for next push

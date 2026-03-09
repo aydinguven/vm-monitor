@@ -109,6 +109,7 @@ def is_feature_enabled(feature: str, default: bool = True) -> bool:
     - pods: Kubernetes pod discovery
     - auto_update: Agent auto-updates
     - latency: Dashboard-side latency monitoring via ICMP ping
+    - gpu: GPU metrics collection and display
     """
     features = _load_features()
     
@@ -134,4 +135,5 @@ FEATURE_CONTAINERS = is_feature_enabled("containers", True)
 FEATURE_PODS = is_feature_enabled("pods", True)
 FEATURE_AUTO_UPDATE = is_feature_enabled("auto_update", True)
 FEATURE_LATENCY = is_feature_enabled("latency", False)  # v1.48 - Disabled by default
+FEATURE_GPU = is_feature_enabled("gpu", False)  # v1.55 - GPU monitoring, disabled by default
 
