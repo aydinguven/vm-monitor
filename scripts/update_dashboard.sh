@@ -142,14 +142,9 @@ fi
 ./venv/bin/pip install -r requirements.txt -q
 ./venv/bin/pip install gunicorn requests -q
 
-# 7. Migrate Database
+# 7. Migrate Database (adds new columns to existing tables)
 print_step "Running database migrations..."
-sudo -u vm-monitor ./venv/bin/python -c "
-from app import app, db
-with app.app_context():
-    db.create_all()
-    print('  Database schema verified')
-"
+sudo -u vm-monitor ./venv/bin/python migrate_db.py
 
 # 8. Start Service
 print_step "Restarting service..."
