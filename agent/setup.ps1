@@ -11,6 +11,7 @@ param(
     [switch]$NoPods,
     [switch]$NoCommands,
     [switch]$NoAutoUpdate,
+    [switch]$Gpu,
     [string]$InstallDir = "C:\vm-agent"
 )
 
@@ -21,6 +22,7 @@ $FeatureContainers = -not $NoContainers
 $FeaturePods = -not $NoPods
 $FeatureCommands = -not $NoCommands
 $FeatureAutoUpdate = -not $NoAutoUpdate
+$FeatureGpu = [bool]$Gpu
 
 function Write-Banner {
     Write-Host ""
@@ -91,6 +93,7 @@ function Run-Interactive {
     $script:FeaturePods = Read-YesNo -Prompt "Enable Kubernetes pod discovery?" -Default $true
     $script:FeatureCommands = Read-YesNo -Prompt "Enable remote command execution?" -Default $true
     $script:FeatureAutoUpdate = Read-YesNo -Prompt "Enable automatic agent updates?" -Default $true
+    $script:FeatureGpu = Read-YesNo -Prompt "Enable GPU monitoring? (requires NVIDIA GPU)" -Default $false
     
     Write-Host ""
     Write-Host "Step 3: Confirm Settings" -ForegroundColor Green
@@ -102,6 +105,7 @@ function Run-Interactive {
     Show-FeatureStatus -Name "K8s Pods  " -Enabled $FeaturePods
     Show-FeatureStatus -Name "Commands  " -Enabled $FeatureCommands
     Show-FeatureStatus -Name "Auto-Update" -Enabled $FeatureAutoUpdate
+    Show-FeatureStatus -Name "GPU Monitor" -Enabled $FeatureGpu
     Write-Host ""
     
     $confirm = Read-YesNo -Prompt "Proceed with installation?" -Default $true
@@ -185,6 +189,16 @@ function Install-Agent {
         .\venv\Scripts\pip.exe install psutil requests packaging -q
     }
     
+    # Install pynvml if GPU monitoring is enabled
+    if ($FeatureGpu) {
+        Write-Host "  Installing GPU monitoring dependency (pynvml)..." -ForegroundColor Cyan
+        try {
+            .\venv\Scripts\pip.exe install pynvml -q
+        } catch {
+            Write-Host "  Warning: Could not install pynvml. nvidia-smi fallback will be used." -ForegroundColor Yellow
+        }
+    }
+    
     # 5. Create configuration (JSON)
     Write-Host "[5/5] Generating configuration..." -ForegroundColor Blue
     
@@ -194,6 +208,7 @@ function Install-Agent {
         "interval"    = [int]$Interval
         "hostname"    = [System.Net.Dns]::GetHostName()
         "auto_update" = $FeatureAutoUpdate
+        "enable_gpu"  = $FeatureGpu
         "features"    = @{
             "containers" = $FeatureContainers
             "pods"       = $FeaturePods

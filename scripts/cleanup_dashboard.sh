@@ -2,8 +2,6 @@
 # cleanup_dashboard.sh - Remove VM Dashboard from the system
 # Usage: ./cleanup_dashboard.sh [--force]
 
-set -e
-
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -35,7 +33,7 @@ echo -e "${NC}"
 
 if [ "$FORCE" != true ]; then
     echo -n -e "${RED}This will completely remove VM Dashboard. Proceed? [y/N]: ${NC}"
-    read confirm
+    read -r confirm </dev/tty || confirm="n"
     if [[ ! "$confirm" =~ ^[Yy] ]]; then
         echo "Cancelled."
         exit 0
@@ -48,14 +46,20 @@ echo -e "${GREEN}🧹 Removing VM Dashboard...${NC}"
 # Stop and disable service
 echo -e "  ${CYAN}Stopping service...${NC}"
 if systemctl is-active --quiet vm-monitor 2>/dev/null; then
-    sudo systemctl stop vm-monitor
+    sudo systemctl stop vm-monitor || true
 fi
 if systemctl is-enabled --quiet vm-monitor 2>/dev/null; then
-    sudo systemctl disable vm-monitor
+    sudo systemctl disable vm-monitor || true
 fi
 
-# Kill any remaining gunicorn processes
-sudo pkill -9 -f "gunicorn.*app:app" 2>/dev/null || true
+# Kill any remaining gunicorn processes (exclude this script's own PID tree)
+echo -e "  ${CYAN}Stopping gunicorn processes...${NC}"
+sudo pkill -f "gunicorn.*app:app" 2>/dev/null || true
+sleep 1
+# Force kill only if still running
+if pgrep -f "gunicorn.*app:app" >/dev/null 2>&1; then
+    sudo pkill -9 -f "gunicorn.*app:app" 2>/dev/null || true
+fi
 
 # Remove service file
 if [ -f "/etc/systemd/system/vm-monitor.service" ]; then
@@ -73,7 +77,7 @@ if id "vm-monitor" &>/dev/null; then
     echo -e "  ${CYAN}Removing vm-monitor user...${NC}"
     sudo userdel vm-monitor 2>/dev/null || true
 fi
-if getent group vm-monitor >/dev/null; then
+if getent group vm-monitor >/dev/null 2>&1; then
     sudo groupdel vm-monitor 2>/dev/null || true
 fi
 

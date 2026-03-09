@@ -20,11 +20,12 @@ INTERVAL=30
 INSTALL_DIR="/opt/vm-agent"
 BATCH_MODE=false
 
-# Feature flags (all enabled by default)
+# Feature flags (all enabled by default, GPU disabled by default)
 FEATURE_CONTAINERS=true
 FEATURE_PODS=true
 FEATURE_COMMANDS=true
 FEATURE_AUTO_UPDATE=true
+FEATURE_GPU=false
 
 # Parse command line arguments for batch mode
 while [[ "$#" -gt 0 ]]; do
@@ -37,6 +38,7 @@ while [[ "$#" -gt 0 ]]; do
         --no-pods) FEATURE_PODS=false ;;
         --no-commands) FEATURE_COMMANDS=false ;;
         --no-auto-update) FEATURE_AUTO_UPDATE=false ;;
+        --gpu) FEATURE_GPU=true ;;
         --help)
             echo "VM Agent Setup - Interactive installer"
             echo ""
@@ -52,6 +54,7 @@ while [[ "$#" -gt 0 ]]; do
             echo "  --no-pods           Disable Kubernetes pod discovery"
             echo "  --no-commands       Disable remote command execution"
             echo "  --no-auto-update    Disable automatic agent updates"
+            echo "  --gpu               Enable GPU monitoring (requires NVIDIA GPU)"
             exit 0
             ;;
         *) echo "Unknown parameter: $1"; exit 1 ;;
@@ -122,6 +125,7 @@ run_interactive() {
     FEATURE_PODS=$(prompt_yes_no "Enable Kubernetes pod discovery?" "y")
     FEATURE_COMMANDS=$(prompt_yes_no "Enable remote command execution?" "y")
     FEATURE_AUTO_UPDATE=$(prompt_yes_no "Enable automatic agent updates?" "y")
+    FEATURE_GPU=$(prompt_yes_no "Enable GPU monitoring? (requires NVIDIA GPU)" "n")
     
     echo ""
     echo -e "${GREEN}Step 3: Confirm Settings${NC}"
@@ -133,6 +137,7 @@ run_interactive() {
     echo -e "  K8s Pods:     $([ "$FEATURE_PODS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
     echo -e "  Commands:     $([ "$FEATURE_COMMANDS" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
     echo -e "  Auto-Update:  $([ "$FEATURE_AUTO_UPDATE" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
+    echo -e "  GPU Monitor:  $([ "$FEATURE_GPU" = "true" ] && echo -e "${GREEN}✓ Enabled${NC}" || echo -e "${RED}✗ Disabled${NC}")"
     echo ""
     
     local confirm=$(prompt_yes_no "Proceed with installation?" "y")
@@ -254,7 +259,15 @@ install_agent() {
         sudo "$PIP" install -r "$INSTALL_DIR/requirements.txt" -q --break-system-packages 2>/dev/null || \
         sudo "$PIP" install -r "$INSTALL_DIR/requirements.txt" -q 2>/dev/null || \
         sudo pip3 install psutil requests distro packaging -q --break-system-packages 2>/dev/null || \
-        sudo pip3 install psutil requests distro packaging -q
+        sudo "$PIP" install psutil requests distro packaging -q
+    fi
+    
+    # Install pynvml if GPU monitoring is enabled
+    if [ "$FEATURE_GPU" = "true" ]; then
+        echo -e "  ${CYAN}Installing GPU monitoring dependency (pynvml)...${NC}"
+        sudo "$PIP" install pynvml -q 2>/dev/null || \
+        sudo pip3 install pynvml -q --break-system-packages 2>/dev/null || \
+        echo -e "  ${YELLOW}Warning: Could not install pynvml. nvidia-smi fallback will be used.${NC}"
     fi
     
     # 7. Create configuration (JSON)
@@ -266,6 +279,7 @@ install_agent() {
   "interval": $INTERVAL,
   "hostname": "$(hostname)",
   "auto_update": $FEATURE_AUTO_UPDATE,
+  "enable_gpu": $FEATURE_GPU,
   "features": {
     "containers": $FEATURE_CONTAINERS,
     "pods": $FEATURE_PODS,
