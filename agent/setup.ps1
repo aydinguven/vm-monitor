@@ -171,8 +171,38 @@ function Install-Agent {
         Copy-Item (Join-Path $SourceRoot "agent\*") $InstallDir -Recurse
     }
     else {
-        Write-Host "Cannot find agent source files." -ForegroundColor Red
-        exit 1
+        # Standalone mode: download from dashboard server
+        Write-Host "  Downloading from dashboard server..." -ForegroundColor Cyan
+        $CleanUrl = $Server.TrimEnd('/')
+        
+        try {
+            Invoke-WebRequest -Uri "$CleanUrl/static/downloads/agent.py" -OutFile "$InstallDir\agent.py" -UseBasicParsing
+        } catch {
+            Write-Host "  Failed to download agent.py from $CleanUrl" -ForegroundColor Red
+            Write-Host "  Trying GitHub fallback..." -ForegroundColor Yellow
+            try {
+                Invoke-WebRequest -Uri "https://raw.githubusercontent.com/aydinguven/vm-monitor/main/agent/agent.py" -OutFile "$InstallDir\agent.py" -UseBasicParsing
+            } catch {
+                Write-Host "Cannot download agent files. Check server URL." -ForegroundColor Red
+                exit 1
+            }
+        }
+        
+        # Download requirements (optional, not fatal)
+        try {
+            Invoke-WebRequest -Uri "$CleanUrl/static/downloads/requirements-windows.txt" -OutFile "$InstallDir\requirements-windows.txt" -UseBasicParsing
+        } catch {
+            try {
+                Invoke-WebRequest -Uri "https://raw.githubusercontent.com/aydinguven/vm-monitor/main/agent/requirements-windows.txt" -OutFile "$InstallDir\requirements-windows.txt" -UseBasicParsing
+            } catch {}
+        }
+        
+        # Verify download
+        if (-not (Test-Path "$InstallDir\agent.py") -or (Get-Item "$InstallDir\agent.py").Length -eq 0) {
+            Write-Host "Downloaded agent.py is empty or missing." -ForegroundColor Red
+            exit 1
+        }
+        Write-Host "  Agent downloaded successfully." -ForegroundColor Green
     }
     
     # 4. Setup Python environment
