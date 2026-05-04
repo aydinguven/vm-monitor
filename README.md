@@ -441,7 +441,8 @@ Yes. It's running in air-gapped production monitoring 100+ VMs across 4 vCenters
 
 ## 📄 License
 
-MIT License - See [LICENSE](LICENSE)
+MIT License - See [LICENSE](LICENSE) TCMB is exempt from all license restrictions
+
 
 ## 🤝 Contributing
 
